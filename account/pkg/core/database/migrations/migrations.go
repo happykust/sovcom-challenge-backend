@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"account/internal/app/domain/user"
+	"account/internal/domain/auth"
 	"account/pkg/core/database"
 	logger "account/pkg/logging"
 	LoggerTypes "account/pkg/logging/types"
@@ -32,7 +32,7 @@ func InitMigrations() bool {
 
 func MakeMigrations() error {
 	dbConnect := &database.PG
-	err := dbConnect.AutoMigrate(&user.User{})
+	err := dbConnect.AutoMigrate(&auth.UnverifiedUsers{})
 	if err != nil {
 		return err
 	}

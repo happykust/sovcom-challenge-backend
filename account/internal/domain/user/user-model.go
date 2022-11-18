@@ -22,19 +22,6 @@ type User struct {
 	RefreshTokenHash string
 	Role             Role `gorm:"default:'user'"`
 	ReferralCode     string
+	BalanceId        uint
+	ReferralId       uint
 }
-
-//type User struct {
-//	gorm.Model
-//	UserName         string
-//	PasswordHash     string
-//	Email            string
-//	FirstName        string
-//	LastName         string
-//	DateOfBirth      time.Time `gorm:"type:date"`
-//	Role             Role      `gorm:"default:'user'"`
-//	AvatarUrl        string
-//	RefreshTokenHash string
-//	BalanceId        uint
-//	ReferalId        uint
-//}
