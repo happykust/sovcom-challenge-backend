@@ -105,7 +105,7 @@ func Consumer(tickerFrom string, ticketTo string) {
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull,
 				tickerDynamicJSONOutcoming.Timestamp, byteResponseJSON)
-			go amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: tickerDynamicJSONOutcoming})
+			amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: tickerDynamicJSONOutcoming})
 			logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Parsed data for "+time.Unix(tickerDynamicJSONOutcoming.Timestamp, 0).String(), nil)
 		}
 		req.Body.Close()
