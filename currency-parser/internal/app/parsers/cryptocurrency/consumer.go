@@ -2,12 +2,15 @@ package cryptocurrency
 
 import (
 	"context"
+	"currency-parser/internal/app/sending/amqp"
+	"currency-parser/pkg/core/config"
 	"currency-parser/pkg/core/database"
 	logger "currency-parser/pkg/logging"
 	LoggerTypes "currency-parser/pkg/logging/types"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"libs/contracts/currency"
 	"time"
 )
 
@@ -19,6 +22,7 @@ func Consumer(tickerFrom string, tickerTo string) {
 	if err != nil {
 		logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Could not connect to websocket", err)
 	}
+	database.Redis.SAdd(context.Background(), config.RedisTickersGroupsSet, tickerFull)
 
 	done := make(chan struct{})
 
@@ -44,6 +48,7 @@ func Consumer(tickerFrom string, tickerTo string) {
 				continue
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull, cryptoCurrency.EventTime, outJson)
+			go amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: cryptoCurrency})
 		}
 	}()
 	go func() {
