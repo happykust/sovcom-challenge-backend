@@ -83,12 +83,14 @@ func VerifyUser(userId uint, status RegistrationStatus) {
 	if localUser[0].RegistrationStatus == RegistrationStatusVerified {
 		newUser := user.User{UserName: localUser[0].UserName, Email: localUser[0].Email, FirstName: localUser[0].FirstName, LastName: localUser[0].LastName, PasswordHash: localUser[0].PasswordHash, RefreshTokenHash: localUser[0].RefreshTokenHash}
 		CreatedVerifiedUserAccount(newUser)
-		DeleteUnverifiedUserProfile(userId)
+
 	}
 }
 
 func CreatedVerifiedUserAccount(payload user.User) []user.User {
 	CreateUserAccount(payload)
+	findNotVerifiedUser := GetUnverifiedUserByEmail(payload.Email)
+	DeleteUnverifiedUserProfile(findNotVerifiedUser[0].ID)
 	NewUser := FindUserById(payload.ID)
 	emailMessage := email.Request{Email: payload.Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
 	// emailMessage to []byte
@@ -97,11 +99,18 @@ func CreatedVerifiedUserAccount(payload user.User) []user.User {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
 	}
 	sendler.SendEmail(jsonObj)
-	messageToBalance := payments.CreateBalanceUserRequest{UserID: payload.ID}
+	findNewUser := FindUserByEmail(payload.Email)
+	messageToBalance := payments.CreateBalanceUserRequest{UserID: findNewUser[0].ID}
 	jsonObj, err = json.Marshal(messageToBalance)
 	balance := sendler.SendPayments(jsonObj)
+	obj := payments.CreateBalanceUserResponse{}
+	err = json.Unmarshal(balance, &obj)
+	if err != nil {
+		logger.Log(LoggerTypes.CRITICAL, "Unmarshal error", err)
+	}
+
 	fmt.Println(balance)
-	UpdateUserBalance(payload.ID, payload.ID)
+	UpdateUserBalance(findNewUser[0].ID, obj.BalanceId)
 
 	// create balance
 	// create RUB wallet ?
