@@ -2,11 +2,14 @@ package currency
 
 import (
 	"context"
+	"currency-parser/internal/app/sending/amqp"
+	"currency-parser/pkg/core/config"
 	"currency-parser/pkg/core/database"
 	logger "currency-parser/pkg/logging"
 	LoggerTypes "currency-parser/pkg/logging/types"
 	"encoding/json"
 	"io"
+	"libs/contracts/currency"
 	"net/http"
 	"strconv"
 	"time"
@@ -102,9 +105,11 @@ func Consumer(tickerFrom string, ticketTo string) {
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull,
 				tickerDynamicJSONOutcoming.Timestamp, byteResponseJSON)
+			go amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: tickerDynamicJSONOutcoming})
 			logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Parsed data for "+time.Unix(tickerDynamicJSONOutcoming.Timestamp, 0).String(), nil)
 		}
 		req.Body.Close()
+		database.Redis.SAdd(context.Background(), config.RedisTickersGroupsSet, tickerFull)
 		unixTimeStart = time.Now().Unix()
 		time.Sleep(time.Hour + time.Second)
 	}
