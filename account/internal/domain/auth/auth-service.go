@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"account/internal/domain/user"
 	logger "account/pkg/logging"
 	LoggerTypes "account/pkg/logging/types"
 	"errors"
@@ -14,7 +15,10 @@ import (
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	Id uint `json:"id"`
+	Id           uint      `json:"id"`
+	UserVerified bool      `json:"user_verified"`
+	Role         user.Role `json:"role"`
+	Ban          bool      `json:"ban"`
 }
 
 const (
@@ -36,13 +40,16 @@ func validatePassword(password string, hashedPassword string) bool {
 	return err == nil
 }
 
-func GenerateTokens(id uint) (string, string) {
+func GenerateTokens(id uint, ban bool, userV bool, role user.Role) (string, string) {
 
 	AccessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
 			IssuedAt:  time.Now().Unix()},
 		id,
+		userV,
+		role,
+		ban,
 	})
 	RefreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
@@ -50,6 +57,9 @@ func GenerateTokens(id uint) (string, string) {
 			IssuedAt:  time.Now().Unix(),
 		},
 		id,
+		userV,
+		role,
+		ban,
 	})
 	AccessTokenString, err := AccessToken.SignedString([]byte(os.Getenv("SIGNING_KEY")))
 	if err != nil {
@@ -63,15 +73,33 @@ func GenerateTokens(id uint) (string, string) {
 	return AccessTokenString, HashRefreshToken
 }
 
-func RefreshToken(id uint, rfToken string) (string, string) {
-	if validateRfToken(id, rfToken) {
-		return GenerateTokens(id)
+func RefreshToken(id uint, ban bool, role user.Role, userV bool, rfToken string) (string, string) {
+	if validateRfToken(id, userV, rfToken) {
+		return GenerateTokens(id, ban, userV, role)
 	}
 	return "", ""
 }
 
-func validateRfToken(id uint, rfToken string) bool {
-	user := GetUnverifiedUserById(id)
+func validateRfToken(id uint, userV bool, rfToken string) bool {
+	if userV == false {
+		user := GetUnverifiedUserById(id)
+		if user == nil || len(user[0].RefreshTokenHash) == 0 {
+			fmt.Println("User not found")
+			return false
+		}
+		rtMatches, err := argon2.Decode([]byte(user[0].RefreshTokenHash))
+		ok, err := rtMatches.Verify([]byte(rfToken))
+		fmt.Println(ok)
+		if err != nil {
+			logger.Log(LoggerTypes.CRITICAL, "Could not verify refresh token", err)
+			return false
+		}
+		if ok == true {
+			return true
+		}
+		return false
+	}
+	user := FindUserById(id)
 	if user == nil || len(user[0].RefreshTokenHash) == 0 {
 		fmt.Println("User not found")
 		return false
@@ -89,7 +117,7 @@ func validateRfToken(id uint, rfToken string) bool {
 	return false
 }
 
-func ParseToken(accessToken string) (int, error) {
+func ParseToken(accessToken string) (*tokenClaims, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			logger.Log(LoggerTypes.CRITICAL, "Could not parse token", nil)
@@ -99,17 +127,16 @@ func ParseToken(accessToken string) (int, error) {
 	})
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Could not parse token", err)
-		return 0, err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
 	fmt.Println(claims.Id)
 	if !ok {
 		logger.Log(LoggerTypes.CRITICAL, "Could not parse token", err)
-		return 0, errors.New("token claims are not of type *tokenClaims")
+		return nil, errors.New("token claims are not of type *tokenClaims")
 	}
-
-	return int(claims.Id), nil
+	return claims, nil
 }
 
 func HashRfToken(token string) string {

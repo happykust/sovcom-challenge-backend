@@ -25,10 +25,9 @@ func SingUp(payload account.AccountSignUpRequest) account.AccountSignUpResponse 
 	}
 	hashPassword := HashUserPassword(payload.Password)
 	createdUnverifiedUser := CreatingUnverifiedUser(UnverifiedUsers{Email: payload.Email, PasswordHash: hashPassword, UserName: payload.Username, FirstName: payload.FirstName, LastName: payload.LastName})
-	AccessToken, RefreshToken := GenerateTokens(createdUnverifiedUser.ID)
+	AccessToken, RefreshToken := GenerateTokens(createdUnverifiedUser.ID, createdUnverifiedUser.Ban, false, user.RoleUser)
 	UpdateRefreshTokenUnverifiedUser(createdUnverifiedUser.ID, RefreshToken)
 	emailMessage := email.Request{Email: payload.Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
-	// emailMessage to []byte
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
@@ -37,27 +36,32 @@ func SingUp(payload account.AccountSignUpRequest) account.AccountSignUpResponse 
 	return account.AccountSignUpResponse{Message: "User created successfully", AccessToken: AccessToken, RefreshToken: RefreshToken}
 }
 
+func BanUser(userId uint, BanStatus bool) bool {
+	BanUserStatusUpdate(userId, BanStatus)
+	userBanStatus := GetUserBanStatus(userId)
+	if userBanStatus == true {
+		return true
+	} else {
+		return false
+	}
+}
+
 func VerifyUserRequest(payload account.AccountVerifyRequest) account.AccountVerifyResponse {
 	user := GetUnverifiedUserById(payload.Id)
 	if len(user) == 0 {
 		logger.Log(LoggerTypes.CRITICAL, "User verification failed", nil)
 		return account.AccountVerifyResponse{Message: "User verification failed"}
 	}
-	// get all admins
-	// TODO: FIX
+
 	SetAssistants(user[0].ID, 1)
 	user = GetUnverifiedUserById(payload.Id)
-	// get admin by id
 	message := "Вам назначен персональный помощник"
 	emailMessage := email.Request{Email: user[0].Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
-	// emailMessage to []byte
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
 	}
 	sendler.SendEmail(jsonObj)
-	// add to admin
-	// send email
 	return account.AccountVerifyResponse{Message: message, MeetingInformation: message, PersonalAssistant: "olges"}
 }
 
@@ -93,7 +97,6 @@ func CreatedVerifiedUserAccount(payload user.User) []user.User {
 	DeleteUnverifiedUserProfile(findNotVerifiedUser[0].ID)
 	NewUser := FindUserById(payload.ID)
 	emailMessage := email.Request{Email: payload.Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
-	// emailMessage to []byte
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
@@ -111,9 +114,6 @@ func CreatedVerifiedUserAccount(payload user.User) []user.User {
 
 	fmt.Println(balance)
 	UpdateUserBalance(findNewUser[0].ID, obj.BalanceId)
-
-	// create balance
-	// create RUB wallet ?
 	return NewUser
 
 }
@@ -130,14 +130,14 @@ func SingIn(UserEmail string, password string) account.AccountSignInResponse {
 			return account.AccountSignInResponse{Message: "User not found"}
 		}
 		emailMessage := email.Request{Email: UserEmail, Subject: "Вы создали акк", Body: "первое сообщени 28"}
-		// emailMessage to []byte
 		jsonObj, err := json.Marshal(emailMessage)
 		if err != nil {
 			logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
 		}
 		sendler.SendEmail(jsonObj)
-		AccessToken, RefreshToken := GenerateTokens(oldUnverifiedUser[0].ID)
+		AccessToken, RefreshToken := GenerateTokens(oldUnverifiedUser[0].ID, oldUnverifiedUser[0].Ban, false, user.RoleUser)
 		UpdateRefreshTokenUnverifiedUser(oldUnverifiedUser[0].ID, RefreshToken)
+		fmt.Println("auth NOOOOOOverified")
 		return account.AccountSignInResponse{Message: "Login success", AccessToken: AccessToken, RefreshToken: RefreshToken}
 	}
 	checkUnVerifiedUser := GetUnverifiedUserByEmail(UserEmail)
@@ -149,27 +149,27 @@ func SingIn(UserEmail string, password string) account.AccountSignInResponse {
 		return account.AccountSignInResponse{Message: "User not found"}
 	}
 	emailMessage := email.Request{Email: UserEmail, Subject: "Вы создали акк", Body: "первое сообщени 28"}
-	// emailMessage to []byte
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
 	}
 	sendler.SendEmail(jsonObj)
-	AccessToken, RefreshToken := GenerateTokens(checkVerifiedUser[0].ID)
+	AccessToken, RefreshToken := GenerateTokens(checkVerifiedUser[0].ID, checkVerifiedUser[0].Ban, true, user.RoleUser)
 	UpdateRfToken(checkVerifiedUser[0].ID, RefreshToken)
+	fmt.Println("auth verified")
 	return account.AccountSignInResponse{Message: "Login success", AccessToken: AccessToken, RefreshToken: RefreshToken}
 }
 
 func Refresh(rfToken string) (string, string) {
-	id, err := ParseToken(rfToken)
+	claims, err := ParseToken(rfToken)
 	if err != nil {
 		return "", string(err.Error())
 	}
-	validateToken := validateRfToken(uint(id), rfToken)
+	validateToken := validateRfToken(claims.Id, claims.UserVerified, rfToken)
 	if !validateToken {
 		return "", "Token not valid"
 	}
-	return RefreshToken(uint(id), rfToken)
+	return RefreshToken(claims.Id, claims.Ban, claims.Role, claims.UserVerified, rfToken)
 }
 
 func SingOut(id uint) account.AccountLogoutResponse {

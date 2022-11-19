@@ -20,6 +20,7 @@ type UnverifiedUsers struct {
 	UserName           string
 	Email              string
 	FirstName          string
+	Ban                bool
 	LastName           string
 	PasswordHash       string
 	RefreshTokenHash   string

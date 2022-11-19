@@ -81,6 +81,17 @@ func DeleteUnverifiedUserProfile(id uint) bool {
 	return true
 }
 
+func BanUserStatusUpdate(userId uint, ban bool) bool {
+	database.PG.Exec("UPDATE users SET ban = ? WHERE id = ?", ban, userId)
+	return true
+}
+
+func GetUserBanStatus(userId uint) bool {
+	var status bool
+	database.PG.Raw("SELECT ban FROM users WHERE id = ?", userId).Scan(&status)
+	return status
+
+}
 func UpdateUserBalance(userId uint, balanceId uint) {
 	database.PG.Exec("UPDATE users SET balance_id = ? WHERE id = ?", balanceId, userId)
 }

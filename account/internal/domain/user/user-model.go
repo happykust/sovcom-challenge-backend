@@ -24,4 +24,5 @@ type User struct {
 	ReferralCode     string
 	BalanceId        uint
 	ReferralId       uint
+	Ban              bool
 }
