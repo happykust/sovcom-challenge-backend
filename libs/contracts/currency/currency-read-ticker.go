@@ -1,10 +1,9 @@
 package currency
 
 type ReadTickerRequest struct {
-	Ticker string `json:"ticker"`
+	TickerGroup string `json:"ticker_group"`
 }
 
 type ReadTickerResponse struct {
-	Ticker   string  `json:"ticker"`
 	Currency float64 `json:"currency"`
 }

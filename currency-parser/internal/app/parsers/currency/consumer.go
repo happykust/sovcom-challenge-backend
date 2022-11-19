@@ -92,11 +92,13 @@ func Consumer(tickerFrom string, ticketTo string) {
 		for i := 0; i < timeStampLen; i++ {
 			tickerDynamicJSONOutcoming := TickerDynamicJSONOutcoming{
 				Timestamp: tickerDynamic.Chart.Result[0].Timestamp[i],
-				Open:      tickerDynamic.Chart.Result[0].Indicators.Quote[0].Open[i],
-				High:      tickerDynamic.Chart.Result[0].Indicators.Quote[0].High[i],
-				Low:       tickerDynamic.Chart.Result[0].Indicators.Quote[0].Low[i],
-				Close:     tickerDynamic.Chart.Result[0].Indicators.Quote[0].Close[i],
-				Volume:    tickerDynamic.Chart.Result[0].Indicators.Quote[0].Volume[i],
+				Kline: TickerDynamicKlineJSONOutcoming{
+					Open:   tickerDynamic.Chart.Result[0].Indicators.Quote[0].Open[i],
+					Close:  tickerDynamic.Chart.Result[0].Indicators.Quote[0].Close[i],
+					High:   tickerDynamic.Chart.Result[0].Indicators.Quote[0].High[i],
+					Low:    tickerDynamic.Chart.Result[0].Indicators.Quote[0].Low[i],
+					Volume: tickerDynamic.Chart.Result[0].Indicators.Quote[0].Volume[i],
+				},
 			}
 			byteResponseJSON, err := json.Marshal(tickerDynamicJSONOutcoming)
 			if err != nil {
@@ -105,7 +107,11 @@ func Consumer(tickerFrom string, ticketTo string) {
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull,
 				tickerDynamicJSONOutcoming.Timestamp, byteResponseJSON)
-			go amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: tickerDynamicJSONOutcoming})
+
+			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequest{TickerGroup: tickerFull,
+				TickerFrom: tickerFrom, TickerTo: ticketTo, Data: tickerDynamicJSONOutcoming})
+			go amqp.SendCurrencyUpdateToDeals(currency.CurrencyUpdateRequest{TickerGroup: tickerFull,
+				TickerFrom: tickerFrom, TickerTo: ticketTo, Data: tickerDynamicJSONOutcoming})
 			logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Parsed data for "+time.Unix(tickerDynamicJSONOutcoming.Timestamp, 0).String(), nil)
 		}
 		req.Body.Close()
