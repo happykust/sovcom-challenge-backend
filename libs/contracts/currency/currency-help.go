@@ -2,6 +2,10 @@ package currency
 
 var CurrencyExchange = "currency"
 
+var CurrencyToAccountsRoutingKey = "command.currency.currencytoaccounts"
+var CurrencyToAccountsConsumerName = "currency.service.consumer.currencytoaccounts"
+var CurrencyToAccountsQueueName = "currency.service.queue.currencytoaccounts"
+
 // Currency update
 
 var CurrencyUpdateTopic = "command.currency.update"

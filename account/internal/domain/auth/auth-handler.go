@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"libs/contracts/account"
+	"libs/contracts/currency/currencyToAccounts"
 	"libs/contracts/email"
 	"libs/contracts/payments"
 )
@@ -158,6 +159,14 @@ func SingIn(UserEmail string, password string) account.AccountSignInResponse {
 	UpdateRfToken(checkVerifiedUser[0].ID, RefreshToken)
 	fmt.Println("auth verified")
 	return account.AccountSignInResponse{Message: "Login success", AccessToken: AccessToken, RefreshToken: RefreshToken}
+}
+
+func ValidateTokens(accessToken string) currencyToAccounts.ValidateResponse {
+	t, err := ParseToken(accessToken)
+	if err != nil || t == nil || t.UserVerified == false || t.Ban == true {
+		return currencyToAccounts.ValidateResponse{Status: false}
+	}
+	return currencyToAccounts.ValidateResponse{Status: true, UserID: t.Id}
 }
 
 func Refresh(rfToken string) (string, string) {
