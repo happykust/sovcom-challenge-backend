@@ -20,6 +20,7 @@ func main() {
 		logger.Log(LoggerTypes.ERROR, "[Loyality | Database] Could not make migrations!", nil)
 	}
 
+	go routers.ReferralAmqpRouter()
 	go routers.PromocodesAmqpRouter()
 	select {}
 }
