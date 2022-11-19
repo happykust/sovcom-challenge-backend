@@ -81,6 +81,10 @@ func DeleteUnverifiedUserProfile(id uint) bool {
 	return true
 }
 
+func UpdateUserBalance(userId uint, balanceId uint) {
+	database.PG.Exec("UPDATE users SET balance_id = ? WHERE id = ?", balanceId, userId)
+}
+
 func SetAssistants(userId uint, assistant uint) {
 	database.PG.Exec("UPDATE unverified_users SET personal_assistant = ? WHERE id = ?", assistant, userId)
 }

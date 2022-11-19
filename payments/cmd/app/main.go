@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"libs/contracts/payments"
-	"payments/internal/app/domain/transactions"
 	"payments/internal/app/router"
 	"payments/pkg/core/config"
 	"payments/pkg/core/database"
@@ -17,8 +14,8 @@ func init() {
 func main() {
 	database.OpenPostgresConnect()
 	migrations.InitMigrations()
-	s := transactions.TransactionMock(payments.CreateTransactionRequest{UserId: 4, Amount: 1000000000, PromoCode: "dffd"})
-	fmt.Println(s)
+	//s := transactions.TransactionMock(payments.CreateTransactionRequest{UserId: 4, Amount: 1000000000, PromoCode: "dffd"})
+	//fmt.Println(s)
 	go router.MainAmqpRouter()
 	select {}
 

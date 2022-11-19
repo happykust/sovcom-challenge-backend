@@ -6,8 +6,10 @@ import (
 	logger "account/pkg/logging"
 	LoggerTypes "account/pkg/logging/types"
 	"encoding/json"
+	"fmt"
 	"libs/contracts/account"
 	"libs/contracts/email"
+	"libs/contracts/payments"
 )
 
 func SingUp(payload account.AccountSignUpRequest) account.AccountSignUpResponse {
@@ -95,6 +97,12 @@ func CreatedVerifiedUserAccount(payload user.User) []user.User {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
 	}
 	sendler.SendEmail(jsonObj)
+	messageToBalance := payments.CreateBalanceUserRequest{UserID: payload.ID}
+	jsonObj, err = json.Marshal(messageToBalance)
+	balance := sendler.SendPayments(jsonObj)
+	fmt.Println(balance)
+	UpdateUserBalance(payload.ID, payload.ID)
+
 	// create balance
 	// create RUB wallet ?
 	return NewUser
