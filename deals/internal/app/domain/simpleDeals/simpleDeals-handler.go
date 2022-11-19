@@ -9,105 +9,115 @@ import (
 )
 
 func SimpleDealBuyHandler(request simpleDealsLib.SimpleDealBuyRequest) simpleDealsLib.SimpleDealBuyResponse {
-	userTIckerBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: request.UserID, Ticker: request.TickerFrom})
+	userTickerFromBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: request.UserID,
+		Ticker: request.TickerFrom})
 
-	tickerGroupCurrency := amqp.GetTickerCurrency(currency.ReadTickerRequest{TickerGroup: request.TickerGroup})
+	tickerGroupCurrency := GetTickerCurrency(currency.ReadTickerRequest{TickerGroup: request.TickerGroup})
 	if tickerGroupCurrency.Currency == 0 {
 		return simpleDealsLib.SimpleDealBuyResponse{Status: false,
 			Message: "Произошла ошибка при проведении сделки. Попробуйте позже."}
 	}
 
-	cost := request.Amount * ticker.Currency
-	if userRUBBalance.Amount < cost {
+	cost := request.Amount * tickerGroupCurrency.Currency
+	if userTickerFromBalance.Amount < cost {
 		return simpleDealsLib.SimpleDealBuyResponse{Status: false,
 			Message: "Недостаточно средств для проведения сделки."}
 	}
 
-	updatedRUBBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
+	updatedTickerFromBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 		UserID: request.UserID,
-		Ticker: "RUB",
+		Ticker: request.TickerFrom,
 		Amount: -cost,
 	})
-	if updatedRUBBalance.Status == false {
+	if updatedTickerFromBalance.Status == false {
 		return simpleDealsLib.SimpleDealBuyResponse{Status: false,
 			Message: "Произошла ошибка при проведении сделки. Попробуйте позже."}
 	}
 
-	updatedTickerBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
+	updatedTickerToBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 		UserID: request.UserID,
-		Ticker: request.Ticker,
+		Ticker: request.TickerTo,
 		Amount: request.Amount,
 	})
 
-	if updatedTickerBalance.Status == false {
+	if updatedTickerToBalance.Status == false {
 		amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 			UserID: request.UserID,
-			Ticker: "RUB",
+			Ticker: request.TickerFrom,
 			Amount: cost,
 		})
-		SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.BUY, Ticker: request.Ticker,
-			Amount: request.Amount, Currency: ticker.Currency})
+		SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.BUY, TickerGroup: request.TickerGroup,
+			TickerFrom: request.TickerFrom, TickerTo: request.TickerTo, Amount: request.Amount, Currency: cost})
 		return simpleDealsLib.SimpleDealBuyResponse{Status: false,
 			Message: "Произошла ошибка при проведении сделки. Обратитесь в тех. поддержку."}
 	}
 
-	SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.BUY, Ticker: request.Ticker,
-		Amount: request.Amount, Currency: ticker.Currency})
+	SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.BUY, TickerGroup: request.TickerGroup,
+		TickerFrom: request.TickerFrom, TickerTo: request.TickerTo, Amount: request.Amount, Currency: cost})
 
-	return simpleDealsLib.SimpleDealBuyResponse{RubBalance: updatedRUBBalance.Amount,
-		Ticker: updatedTickerBalance.Ticker, Amount: updatedTickerBalance.Amount, Status: true,
-		Message: "Сделка успешно проведена."}
+	return simpleDealsLib.SimpleDealBuyResponse{
+		Status: true, Message: "Сделка успешно проведена.", TickerGroup: request.TickerGroup,
+		TickerFrom: request.TickerFrom, TickerTo: request.TickerTo,
+		TickerFromBalance: updatedTickerFromBalance.Amount, TickerToBalance: updatedTickerToBalance.Amount,
+		Amount: request.Amount}
 }
 
 func SimpleDealSellHandler(request simpleDealsLib.SimpleDealSellRequest) simpleDealsLib.SimpleDealSellResponse {
-	userBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: request.UserID, Ticker: request.Ticker})
+	userTickerFromBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: request.UserID,
+		Ticker: request.TickerFrom})
 
-	ticker := amqp.GetTickerCurrency(currency.ReadTickerRequest{Ticker: request.Ticker})
-	if ticker.Ticker == "" {
+	tickerGroupCurrency := GetTickerCurrency(currency.ReadTickerRequest{TickerGroup: request.TickerGroup})
+	if tickerGroupCurrency.Currency == 0 {
 		return simpleDealsLib.SimpleDealSellResponse{Status: false,
 			Message: "Произошла ошибка при проведении сделки. Попробуйте позже."}
 	}
 
-	if userBalance.Amount < request.Amount {
+	if userTickerFromBalance.Amount < request.Amount {
 		return simpleDealsLib.SimpleDealSellResponse{Status: false,
 			Message: "Недостаточно средств для проведения сделки."}
 	}
 
-	cost := request.Amount * ticker.Currency
+	cost := request.Amount * tickerGroupCurrency.Currency
 
-	updatedTickerBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
+	updatedTickerFromBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 		UserID: request.UserID,
-		Ticker: request.Ticker,
+		Ticker: request.TickerFrom,
 		Amount: -request.Amount,
 	})
 
-	if updatedTickerBalance.Status == false {
+	if updatedTickerFromBalance.Status == false {
 		return simpleDealsLib.SimpleDealSellResponse{Status: false,
 			Message: "Произошла ошибка при проведении сделки. Попробуйте позже."}
 	}
 
-	updatedRUBBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
+	updatedTickerToBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 		UserID: request.UserID,
-		Ticker: "RUB",
+		Ticker: request.TickerTo,
 		Amount: cost,
 	})
 
-	if updatedRUBBalance.Status == false {
+	if updatedTickerToBalance.Status == false {
 		amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 			UserID: request.UserID,
-			Ticker: request.Ticker,
+			Ticker: request.TickerFrom,
 			Amount: request.Amount,
 		})
-		SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.SELL, Ticker: request.Ticker,
-			Amount: request.Amount, Currency: ticker.Currency})
+
+		SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.SELL, TickerGroup: request.TickerGroup,
+			Amount: request.Amount, Currency: tickerGroupCurrency.Currency, TickerFrom: request.TickerFrom,
+			TickerTo: request.TickerTo})
+
 		return simpleDealsLib.SimpleDealSellResponse{Status: false,
 			Message: "Произошла ошибка при проведении сделки. Обратитесь в тех. поддержку."}
 	}
 
-	SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.SELL, Ticker: request.Ticker,
-		Amount: request.Amount, Currency: request.Currency})
+	SimpleDealCreateRepository(SimpleDeal{UserID: request.UserID, Type: types.SELL, TickerGroup: request.TickerGroup,
+		Amount: request.Amount, Currency: tickerGroupCurrency.Currency, TickerFrom: request.TickerFrom,
+		TickerTo: request.TickerTo})
 
-	return simpleDealsLib.SimpleDealSellResponse{RubBalance: updatedRUBBalance.Amount,
-		Ticker: updatedTickerBalance.Ticker, Amount: updatedTickerBalance.Amount, Status: true,
-		Message: "Сделка успешно проведена."}
+	return simpleDealsLib.SimpleDealSellResponse{
+		Status: true, Message: "Сделка успешно проведена.", TickerGroup: request.TickerGroup,
+		TickerFrom: request.TickerFrom, TickerTo: request.TickerTo,
+		TickerFromBalance: updatedTickerFromBalance.Amount, TickerToBalance: updatedTickerToBalance.Amount,
+		Amount: request.Amount}
 }

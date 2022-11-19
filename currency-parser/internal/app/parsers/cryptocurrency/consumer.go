@@ -48,6 +48,7 @@ func Consumer(tickerFrom string, tickerTo string) {
 				continue
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull, cryptoCurrency.EventTime, outJson)
+			database.Redis.Set(context.Background(), config.RedisLastCurrenciesTag+":"+tickerFull, outJson, 0)
 
 			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequest{TickerGroup: tickerFull,
 				TickerFrom: tickerFrom, TickerTo: tickerTo, Data: cryptoCurrency})

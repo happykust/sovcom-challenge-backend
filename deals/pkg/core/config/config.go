@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var RedisLastCurrenciesTag = "last-currencies"
+
 func Init() {
 	err := godotenv.Load(".env")
 
@@ -25,4 +27,11 @@ func GetPostgresDSN() string {
 func GetAMQPUri() string {
 	return fmt.Sprintf("amqp://%s:%s@%s:%s/", os.Getenv("AMQP_USER"), os.Getenv("AMQP_PASS"),
 		os.Getenv("AMQP_HOST"), os.Getenv("AMQP_PORT"))
+}
+
+func GetRedisDSN() string {
+	return fmt.Sprintf(
+		"redis://%s:%s@%s:%s/%s",
+		os.Getenv("REDIS_USER"), os.Getenv("REDIS_PASSWORD"), os.Getenv("REDIS_HOST"),
+		os.Getenv("REDIS_PORT"), os.Getenv("REDIS_DB"))
 }

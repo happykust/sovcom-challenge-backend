@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/go-redis/redis/v7 v7.4.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect

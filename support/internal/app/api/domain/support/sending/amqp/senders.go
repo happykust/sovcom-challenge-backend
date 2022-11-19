@@ -7,7 +7,7 @@ import (
 func GetUserDataByAccessToken(request supportToAccounts.ValidateRequest) supportToAccounts.ValidateResponse {
 	//TODO: Unmock
 	var response supportToAccounts.ValidateResponse
-	response = supportToAccounts.ValidateResponse{Status: true, UserID: 123, FirstName: "Bob", LastName: "F",
-		Role: "user"}
+	response = supportToAccounts.ValidateResponse{Status: true, UserID: 23, FirstName: "Jo", LastName: "F",
+		Role: "admin"}
 	return response
 }

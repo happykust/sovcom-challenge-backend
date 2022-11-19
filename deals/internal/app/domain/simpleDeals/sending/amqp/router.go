@@ -3,7 +3,6 @@ package amqp
 import (
 	amqp_easier "deals/pkg/core/broker/amqp-easier"
 	"encoding/json"
-	"libs/contracts/currency"
 	"libs/contracts/payments"
 )
 
@@ -38,24 +37,6 @@ func UpdateUserBalances(request payments.UpdateBalanceRequest) payments.UpdateBa
 	err := json.Unmarshal(responseAmqp, &response)
 	if err != nil {
 		return payments.UpdateBalanceResponse{}
-	}
-
-	return response
-}
-
-func GetTickerCurrency(request currency.ReadTickerRequest) currency.ReadTickerResponse {
-	exchangeName := currency.CurrencyExchange
-	exchangeType := "topic"
-	routingKey := currency.ReadTickerTopic
-	connName := currency.ReadTickerConsumerName
-	body, _ := json.Marshal(request)
-
-	var response currency.ReadTickerResponse
-	responseAmqp := amqp_easier.PublishConstructor(connName, exchangeName, exchangeType, &routingKey, &body)
-
-	err := json.Unmarshal(responseAmqp, &response)
-	if err != nil {
-		return currency.ReadTickerResponse{}
 	}
 
 	return response

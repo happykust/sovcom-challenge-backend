@@ -11,6 +11,7 @@ func init() {
 	config.Init()
 	database.OpenPostgresConnect()
 	migrations.InitMigrations()
+	database.OpenRedisConnect()
 }
 
 func main() {

@@ -11,6 +11,8 @@ import (
 
 var RedisTickersGroupsSet = "tickers-groups"
 
+var RedisLastCurrenciesTag = "last-currencies"
+
 func Init() {
 	err := godotenv.Load(".env")
 

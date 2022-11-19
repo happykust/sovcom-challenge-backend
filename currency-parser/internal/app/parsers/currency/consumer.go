@@ -105,8 +105,9 @@ func Consumer(tickerFrom string, ticketTo string) {
 				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Currency | "+tickerFull+"] Error while marshalling response.", err)
 				continue
 			}
-			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull,
-				tickerDynamicJSONOutcoming.Timestamp, byteResponseJSON)
+			database.Redis.HSet(context.Background(), tickerFull, tickerDynamicJSONOutcoming.Timestamp,
+				byteResponseJSON)
+			database.Redis.Set(context.Background(), config.RedisLastCurrenciesTag+":"+tickerFull, byteResponseJSON, 0)
 
 			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequest{TickerGroup: tickerFull,
 				TickerFrom: tickerFrom, TickerTo: ticketTo, Data: tickerDynamicJSONOutcoming})
