@@ -8,11 +8,11 @@ type RegistrationStatus string
 
 const (
 	RegistrationStatusCreated  RegistrationStatus = "created"
-	RegistrationStatusPending  RegistrationStatus = "pending"
-	RegistrationStatusDenied   RegistrationStatus = "denied"
-	RegistrationStatusApproved RegistrationStatus = "approved"
-	RegistrationStatusVerified RegistrationStatus = "verified"
-	RegisterStatusBlocked      RegistrationStatus = "blocked"
+	RegistrationStatusPending                     = "pending"
+	RegistrationStatusDenied                      = "denied"
+	RegistrationStatusApproved                    = "approved"
+	RegistrationStatusVerified                    = "verified"
+	RegisterStatusBlocked                         = "blocked"
 )
 
 type UnverifiedUsers struct {

@@ -10,18 +10,19 @@ import (
 func SingUp(payload account.AccountSignUpRequest) account.AccountSignUpResponse {
 	oldUnverifiedUserEmail := GetUnverifiedUserByEmail(payload.Email)
 	oldUnverifiedUserUserName := GetUnverifiedUserByUsername(payload.Username)
+	oldUserEmail := FindUserByEmail(payload.Email)
+	oldUserUserName := FindUserByUsername(payload.Username)
 	if len(oldUnverifiedUserEmail) != 0 && len(oldUnverifiedUserUserName) != 0 {
 		return account.AccountSignUpResponse{Message: "User already exists"}
 	}
-	// hash password
-	// find by verified user
-	createdUnverifiedUser := CreatingUnverifiedUser(UnverifiedUsers{Email: payload.Email, PasswordHash: "passwordHash", UserName: payload.Username, FirstName: payload.FirstName, LastName: payload.LastName})
+	if len(oldUserEmail) != 0 && len(oldUserUserName) != 0 {
+		return account.AccountSignUpResponse{Message: "User already exists"}
+	}
+	hashPassword := HashUserPassword(payload.Password)
+	createdUnverifiedUser := CreatingUnverifiedUser(UnverifiedUsers{Email: payload.Email, PasswordHash: hashPassword, UserName: payload.Username, FirstName: payload.FirstName, LastName: payload.LastName})
 	AccessToken, RefreshToken := GenerateTokens(createdUnverifiedUser.ID)
 	UpdateRefreshTokenUnverifiedUser(createdUnverifiedUser.ID, RefreshToken)
 	// send email
-	// create ref url
-	// create balance
-	// create RUB wallet ?
 	return account.AccountSignUpResponse{Message: "User created successfully", AccessToken: AccessToken, RefreshToken: RefreshToken}
 }
 
@@ -43,6 +44,11 @@ func VerifyUserRequest(payload account.AccountVerifyRequest) account.AccountVeri
 	return account.AccountVerifyResponse{Message: message, MeetingInformation: message, PersonalAssistant: "olges"}
 }
 
+func GetVerifyUserStatus(userId uint) RegistrationStatus {
+	userStatus := GetUserVerifiedStatus(userId)
+	return userStatus
+}
+
 func VerifyUser(userId uint, status RegistrationStatus) {
 	localUser := GetUnverifiedUserById(userId)
 	if len(localUser) == 0 {
@@ -60,29 +66,46 @@ func VerifyUser(userId uint, status RegistrationStatus) {
 	if localUser[0].RegistrationStatus == RegistrationStatusVerified {
 		newUser := user.User{UserName: localUser[0].UserName, Email: localUser[0].Email, FirstName: localUser[0].FirstName, LastName: localUser[0].LastName, PasswordHash: localUser[0].PasswordHash, RefreshTokenHash: localUser[0].RefreshTokenHash}
 		CreatedVerifiedUserAccount(newUser)
+		DeleteUnverifiedUserProfile(userId)
 	}
-
-	// get admin by id
-	// update user status
-
 }
 
-func CreatedVerifiedUserAccount(payload user.User) {
+func CreatedVerifiedUserAccount(payload user.User) []user.User {
+	CreateUserAccount(payload)
+	NewUser := FindUserById(payload.ID)
+	// send email
+	// create balance
+	// create RUB wallet ?
+	return NewUser
 
 }
 
 func SingIn(email string, password string) account.AccountSignInResponse {
-	oldUnverifiedUser := GetUnverifiedUserByEmail(email)
-	if len(oldUnverifiedUser) == 0 {
+	checkVerifiedUser := FindUserByEmail(email)
+	if len(checkVerifiedUser) == 0 {
+		oldUnverifiedUser := GetUnverifiedUserByEmail(email)
+		if len(oldUnverifiedUser) == 0 {
+			return account.AccountSignInResponse{Message: "User not found"}
+		}
+		validateUserPassword := validatePassword(password, oldUnverifiedUser[0].PasswordHash)
+		if !validateUserPassword {
+			return account.AccountSignInResponse{Message: "User not found"}
+		}
+		// send email
+		AccessToken, RefreshToken := GenerateTokens(oldUnverifiedUser[0].ID)
+		UpdateRefreshTokenUnverifiedUser(oldUnverifiedUser[0].ID, RefreshToken)
+		return account.AccountSignInResponse{Message: "Login success", AccessToken: AccessToken, RefreshToken: RefreshToken}
+	}
+	checkUnVerifiedUser := GetUnverifiedUserByEmail(email)
+	if len(checkUnVerifiedUser) != 0 {
 		return account.AccountSignInResponse{Message: "User not found"}
 	}
-	validateUserPassword := validatePassword(password, oldUnverifiedUser[0].PasswordHash)
+	validateUserPassword := validatePassword(password, checkVerifiedUser[0].PasswordHash)
 	if !validateUserPassword {
 		return account.AccountSignInResponse{Message: "User not found"}
 	}
-	// send email
-	AccessToken, RefreshToken := GenerateTokens(oldUnverifiedUser[0].ID)
-	UpdateRefreshTokenUnverifiedUser(oldUnverifiedUser[0].ID, RefreshToken)
+	AccessToken, RefreshToken := GenerateTokens(checkVerifiedUser[0].ID)
+	UpdateRfToken(checkVerifiedUser[0].ID, RefreshToken)
 	return account.AccountSignInResponse{Message: "Login success", AccessToken: AccessToken, RefreshToken: RefreshToken}
 }
 
