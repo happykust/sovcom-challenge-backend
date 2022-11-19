@@ -4,6 +4,10 @@ var PaymentsExchange = "payments"
 
 // Get balance
 
+var CreateBalanceQueue = "payments.service.create.balance.queue"
+var CreateBalanceRoutingKey = "payments.service.create.balance.key"
+var CreateBalanceQueueName = "payments.service.create.balance.queuename"
+
 var GetBalanceTopic = "command.payments.balance.get"
 
 var GetBalanceConsumerName = "payments.service.consumer.balance.get"
