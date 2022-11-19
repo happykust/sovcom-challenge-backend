@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"libs/contracts/account"
 	"libs/contracts/currency"
 	"libs/contracts/currency/currencyToAccounts"
 )
 
 func CurrencyValidateRequest() {
-	messageChannel, amqpChannel, conn := amqp_easier.ConsumerConstructor(currency.CurrencyToAccountsConsumerName, currency.CurrencyExchange, "topic", currency.CurrencyToAccountsRoutingKey, currency.CurrencyToAccountsConsumerName)
+	messageChannel, amqpChannel, conn := amqp_easier.ConsumerConstructor(currency.CurrencyToAccountsConsumerName, account.AccountExchange, "topic", currency.CurrencyToAccountsRoutingKey, currency.CurrencyToAccountsQueueName)
 	defer func(amqpChannel *amqp.Channel) {
 		err := amqpChannel.Close()
 		if err != nil {
@@ -32,6 +33,7 @@ func CurrencyValidateRequest() {
 			if err != nil {
 				fmt.Println(err)
 			}
+			fmt.Println(validateReq)
 			res := auth.ValidateTokens(validateReq.AccessToken)
 			t, err := json.Marshal(&currencyToAccounts.ValidateResponse{Status: res.Status, UserID: res.UserID})
 			if len(d.ReplyTo) != 0 {
