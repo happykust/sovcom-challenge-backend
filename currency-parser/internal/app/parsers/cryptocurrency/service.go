@@ -2,15 +2,15 @@ package cryptocurrency
 
 import (
 	"currency-parser/internal/app/database"
-	database2 "currency-parser/pkg/core/database"
+	databaseCore "currency-parser/pkg/core/database"
 )
 
-func GetGroupID() {
-	TickersGroupID = database.GetGroupIDRepository(TickersGroupName)
+func GetGroupID(groupName string) uint {
+	return database.GetGroupIDRepository(groupName)
 }
 
-func GetTickersInGroup() []database2.Ticker {
-	var tickers []database2.Ticker
-	tickers = database.GetTickersInGroupRepository(TickersGroupID)
+func GetTickersInGroup(groupID uint) []databaseCore.Ticker {
+	var tickers []databaseCore.Ticker
+	tickers = database.GetTickersInGroupRepository(groupID)
 	return tickers
 }

@@ -9,7 +9,8 @@ type Group struct {
 
 type Ticker struct {
 	gorm.Model
-	GroupID uint   `json:"group_id"`
-	Group   Group  `json:"group"`
-	Ticker  string `gorm:"uniqueIndex"`
+	GroupID     uint   `json:"group_id"`
+	Group       Group  `json:"group"`
+	Ticker      string `gorm:"uniqueIndex" json:"ticker"`
+	TickerParse string `json:"ticker_parse"`
 }

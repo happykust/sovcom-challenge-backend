@@ -11,13 +11,13 @@ import (
 	"time"
 )
 
-func Consumer(ticker string) {
-	tickerFull := ticker + ParseToCurrency
-	logger.Log(LoggerTypes.INFO, "[Currency-parser | Cryptocurrency | "+ticker+"] Start parsing.", nil)
+func Consumer(tickerFrom string, tickerTo string) {
+	tickerFull := tickerFrom + tickerTo
+	logger.Log(LoggerTypes.INFO, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Start parsing.", nil)
 	connectionString := fmt.Sprintf(CryptoCurrencyURL, tickerFull)
 	c, _, err := websocket.DefaultDialer.Dial(connectionString, nil)
 	if err != nil {
-		logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+ticker+"] Could not connect to websocket", err)
+		logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Could not connect to websocket", err)
 	}
 
 	done := make(chan struct{})
@@ -27,7 +27,7 @@ func Consumer(ticker string) {
 		for {
 			_, message, err := c.ReadMessage()
 			if err != nil {
-				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+ticker+"] Error while reading message.", err)
+				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Error while reading message.", err)
 				c, _, err = websocket.DefaultDialer.Dial(connectionString, nil)
 				continue
 			}
@@ -35,12 +35,12 @@ func Consumer(ticker string) {
 			cryptoCurrency := CryptocurrencyIncoming{}
 			err = json.Unmarshal(message, &cryptoCurrency)
 			if err != nil {
-				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+ticker+"] Error while unmarshaling incoming message.", err)
+				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Error while unmarshaling incoming message.", err)
 			}
 
 			outJson, err := json.Marshal(cryptoCurrency)
 			if err != nil {
-				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+ticker+"] Error while marshaling incoming message.", err)
+				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Error while marshaling incoming message.", err)
 				continue
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull, cryptoCurrency.EventTime, outJson)
