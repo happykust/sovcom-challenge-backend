@@ -5,7 +5,7 @@ import (
 	"api-gateway/internal/app/api/token"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"libs/contracts/loyality/promocodes"
+	"libs/contracts/payments"
 	"net/http"
 )
 
@@ -20,7 +20,7 @@ func GetBalance(c *gin.Context) {
 		return
 	}
 	req := amqp.Get(jsonObject)
-	objectReq := promocodes.CreateResponse{}
+	objectReq := payments.GetBalancesResponse{}
 	err := json.Unmarshal(req, &objectReq)
 	if err != nil {
 		c.JSON(500, err)

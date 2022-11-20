@@ -29,7 +29,7 @@ func CreateTransaction(payload payments.CreateTransactionRequest) payments.Creat
 		Amount:          payload.Amount,
 		PromoCode:       payload.PromoCode,
 	}
-	if len((payload.PromoCode)) != 0 {
+	if len(payload.PromoCode) != 0 {
 		// TODO: check promo code from promo service
 		fmt.Println("promo code is not empty")
 	}

@@ -3,6 +3,8 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	"support/internal/app/api/router"
+	logger "support/pkg/logging"
+	LoggerTypes "support/pkg/logging/types"
 )
 
 func App() *gin.Engine {
@@ -11,7 +13,8 @@ func App() *gin.Engine {
 
 	err := appRouter.SetTrustedProxies([]string{"*"})
 	if err != nil {
-		//logger
+		logger.Log(LoggerTypes.ERROR, "Error while setting trusted proxies: ", err)
+		panic(err)
 	}
 
 	router.Routes(appRouter)
