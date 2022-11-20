@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"libs/contracts/currency"
+	"strconv"
 	"time"
 )
 
@@ -42,13 +43,25 @@ func Consumer(tickerFrom string, tickerTo string) {
 				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Error while unmarshaling incoming message.", err)
 			}
 
+			cryptoCurrency.TickerFrom = tickerFrom
+			cryptoCurrency.TickerTo = tickerTo
+
 			outJson, err := json.Marshal(cryptoCurrency)
 			if err != nil {
 				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Cryptocurrency | "+tickerFull+"] Error while marshaling incoming message.", err)
 				continue
 			}
 			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull, cryptoCurrency.EventTime, outJson)
-			go amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: cryptoCurrency})
+			database.Redis.Set(context.Background(), config.RedisLastCurrenciesTag+":"+tickerFull, outJson, 0)
+
+			fmt.Println(cryptoCurrency)
+
+			curr, _ := strconv.ParseFloat(cryptoCurrency.Kline.ClosePrice, 64)
+
+			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequestToCurrency{TickerGroup: tickerFull,
+				TickerFrom: tickerFrom, TickerTo: tickerTo, Data: cryptoCurrency})
+			go amqp.SendCurrencyUpdateToDeals(currency.CurrencyUpdateRequestToDeals{TickerGroup: tickerFull,
+				TickerFrom: tickerFrom, TickerTo: tickerTo, Currency: curr})
 		}
 	}()
 	go func() {

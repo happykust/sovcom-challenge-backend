@@ -152,7 +152,13 @@ func GetTicketMessagesActionHandler(conn *websocket.Conn, t int, message types.W
 	userData := authorizedUsersDatas[conn]
 
 	if userData.Role == types.RoleUser {
-		_ = SendWSResponse(conn, t, false, static_vars.AccessDenied, nil)
+		ticket := GetTicketByUserIDRepository(userData.UserID)
+		if ticket.ID == 0 {
+			_ = SendWSResponse(conn, t, false, static_vars.TicketNotExist, nil)
+			return
+		}
+		messages := GetTicketMessagesByTicketIDRepository(ticket.ID)
+		_ = SendWSResponse(conn, t, false, static_vars.Empty, messages)
 		return
 	}
 

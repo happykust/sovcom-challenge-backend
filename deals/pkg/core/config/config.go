@@ -1,15 +1,11 @@
 package config
 
 import (
-	logger "currency-parser/pkg/logging"
-	LoggerTypes "currency-parser/pkg/logging/types"
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
 )
-
-var RedisTickersGroupsSet = "tickers-groups"
 
 var RedisLastCurrenciesTag = "last-currencies"
 
@@ -19,7 +15,6 @@ func Init() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	logger.Log(LoggerTypes.INFO, "[Currency-parser | Config] Config initialized", nil)
 }
 
 func GetPostgresDSN() string {

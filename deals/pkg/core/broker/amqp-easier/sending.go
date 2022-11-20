@@ -2,8 +2,8 @@ package amqp_easier
 
 import (
 	"context"
-	logger "currency-parser/pkg/logging"
-	LoggerTypes "currency-parser/pkg/logging/types"
+	logger "deals/pkg/logging"
+	LoggerTypes "deals/pkg/logging/types"
 	"fmt"
 	"math/rand"
 	"time"
@@ -11,21 +11,13 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func TestSendToConst(jsonObj []byte) {
-	exchangeName := "account"
-	exchangeType := "topic"
-	routingKey := "account.login.command"
-	body := jsonObj
-	connName := "PRECOLLECTOR"
-
-	req := PublishConstructor(connName, exchangeName, exchangeType, &routingKey, &body)
-	fmt.Println(string(req))
-}
-
 func PublishConstructor(connName string, exchangeName string, exchangeType string, routingKey *string, body *[]byte) []byte {
 	message := make(chan []byte)
 
-	req, _ := publish(connName, message, exchangeName, exchangeType, *routingKey, *body)
+	req, err := publish(connName, message, exchangeName, exchangeType, *routingKey, *body)
+	if err != nil {
+		logger.Log(LoggerTypes.CRITICAL, "Publish err", err)
+	}
 
 	return req
 }
@@ -38,6 +30,8 @@ func publish(connName string, message chan []byte, exchange, exchangeType, routi
 	defer cancel()
 	defer connection.Close()
 	defer channel.Close()
+
+	logger.Log(LoggerTypes.INFO, "RabbitMQ exchange", nil)
 
 	if err := channel.ExchangeDeclare(exchange, exchangeType, true, false, false, false, nil); err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Exchange Declare: ", err)
@@ -66,13 +60,17 @@ func publish(connName string, message chan []byte, exchange, exchangeType, routi
 	go waitMessage(messageChannel, message, Id)
 	select {
 	case x := <-message:
+		fmt.Println("ok")
+		fmt.Println(string(x))
 		return x, nil
 	case <-ctx.Done():
+		fmt.Println("timeout")
 		return nil, fmt.Errorf("timeout")
 	}
 }
 
 func waitMessage(messageChannel <-chan amqp.Delivery, message chan []byte, Id string) {
+	fmt.Println("waitMessage")
 	for msg := range messageChannel {
 		fmt.Println(Id)
 		fmt.Println(msg.CorrelationId)

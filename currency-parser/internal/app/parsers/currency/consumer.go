@@ -15,9 +15,11 @@ import (
 	"time"
 )
 
-func Consumer(tickerFrom string, ticketTo string) {
+func Consumer(tickerFrom string, tickerTo string) {
 	tickerFullChanged := false
-	tickerFull := tickerFrom + ticketTo
+	tickerFull := tickerFrom + tickerTo
+	tickerToP := tickerTo
+	tickerFromP := tickerFrom
 	logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Start parsing.", nil)
 
 	var unixTimeStart int64
@@ -82,7 +84,9 @@ func Consumer(tickerFrom string, ticketTo string) {
 				logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] No data in response. Stop parsing.", nil)
 				break
 			} else {
-				tickerFull = ticketTo + tickerFrom
+				tickerFromP = tickerTo
+				tickerToP = tickerFrom
+				tickerFull = tickerTo + tickerFrom
 				tickerFullChanged = true
 				continue
 			}
@@ -92,20 +96,29 @@ func Consumer(tickerFrom string, ticketTo string) {
 		for i := 0; i < timeStampLen; i++ {
 			tickerDynamicJSONOutcoming := TickerDynamicJSONOutcoming{
 				Timestamp: tickerDynamic.Chart.Result[0].Timestamp[i],
-				Open:      tickerDynamic.Chart.Result[0].Indicators.Quote[0].Open[i],
-				High:      tickerDynamic.Chart.Result[0].Indicators.Quote[0].High[i],
-				Low:       tickerDynamic.Chart.Result[0].Indicators.Quote[0].Low[i],
-				Close:     tickerDynamic.Chart.Result[0].Indicators.Quote[0].Close[i],
-				Volume:    tickerDynamic.Chart.Result[0].Indicators.Quote[0].Volume[i],
+				Kline: TickerDynamicKlineJSONOutcoming{
+					Open:   tickerDynamic.Chart.Result[0].Indicators.Quote[0].Open[i],
+					Close:  tickerDynamic.Chart.Result[0].Indicators.Quote[0].Close[i],
+					High:   tickerDynamic.Chart.Result[0].Indicators.Quote[0].High[i],
+					Low:    tickerDynamic.Chart.Result[0].Indicators.Quote[0].Low[i],
+					Volume: tickerDynamic.Chart.Result[0].Indicators.Quote[0].Volume[i],
+				},
+				TickerFrom: tickerFromP,
+				TickerTo:   tickerToP,
 			}
 			byteResponseJSON, err := json.Marshal(tickerDynamicJSONOutcoming)
 			if err != nil {
 				logger.Log(LoggerTypes.ERROR, "[Currency-parser | Currency | "+tickerFull+"] Error while marshalling response.", err)
 				continue
 			}
-			database.Redis.HSet(context.Background(), TickersGroupName+":"+tickerFull,
-				tickerDynamicJSONOutcoming.Timestamp, byteResponseJSON)
-			amqp.SendCurrencyUpdate(currency.CurrencyUpdateRequest{TickerGroup: tickerFull, Data: tickerDynamicJSONOutcoming})
+			database.Redis.HSet(context.Background(), tickerFull, tickerDynamicJSONOutcoming.Timestamp,
+				byteResponseJSON)
+			database.Redis.Set(context.Background(), config.RedisLastCurrenciesTag+":"+tickerFull, byteResponseJSON, 0)
+
+			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequestToCurrency{TickerGroup: tickerFull,
+				TickerFrom: tickerFromP, TickerTo: tickerToP, Data: tickerDynamicJSONOutcoming})
+			go amqp.SendCurrencyUpdateToDeals(currency.CurrencyUpdateRequestToDeals{TickerGroup: tickerFull,
+				TickerFrom: tickerFromP, TickerTo: tickerToP, Currency: tickerDynamicJSONOutcoming.Kline.Close})
 			logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Parsed data for "+time.Unix(tickerDynamicJSONOutcoming.Timestamp, 0).String(), nil)
 		}
 		req.Body.Close()
