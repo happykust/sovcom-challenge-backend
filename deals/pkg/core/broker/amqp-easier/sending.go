@@ -11,17 +11,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func TestSendToConst(jsonObj []byte) {
-	exchangeName := "account"
-	exchangeType := "topic"
-	routingKey := "account.login.command"
-	body := jsonObj
-	connName := "PRECOLLECTOR"
-
-	req := PublishConstructor(connName, exchangeName, exchangeType, &routingKey, &body)
-	fmt.Println(string(req))
-}
-
 func PublishConstructor(connName string, exchangeName string, exchangeType string, routingKey *string, body *[]byte) []byte {
 	message := make(chan []byte)
 

@@ -2,15 +2,15 @@ package currencyDeals
 
 import "deals/pkg/core/database"
 
-func GetAllCurrencyDealsRepository() []CurrencyDeal {
-	var deals []CurrencyDeal
-	database.PG.Find(&deals)
-	return deals
-}
+//func GetAllCurrencyDealsRepository() []CurrencyDeal {
+//	var deals []CurrencyDeal
+//	database.PG.Find(&deals)
+//	return deals
+//}
 
-func GetAllCurrencyDealsByTickerRepository(ticker string) []CurrencyDeal {
+func GetAllCurrencyDealsByTickerRepository(tickerGroup string) []CurrencyDeal {
 	var deals []CurrencyDeal
-	database.PG.Where("ticker = ?", ticker).Find(&deals)
+	database.PG.Where("ticker_group = ?", tickerGroup).Find(&deals)
 	return deals
 }
 
@@ -31,9 +31,8 @@ func DeleteCurrencyDealRepository(dealID uint) uint {
 }
 
 func ChangeCurrencyDealStatusRepository(dealID uint, status bool, message string) uint {
-	database.PG.Model(&CurrencyDeal{}).Where("id = ?", dealID).
-		Update("status", status).
-		Update("message", message).
-		Update("tried", true)
+	database.PG.Model(&CurrencyDeal{}).Where("id = ?", dealID).Update("status", status)
+	database.PG.Model(&CurrencyDeal{}).Where("id = ?", dealID).Update("message", message)
+	database.PG.Model(&CurrencyDeal{}).Where("id = ?", dealID).Update("tried", true)
 	return dealID
 }

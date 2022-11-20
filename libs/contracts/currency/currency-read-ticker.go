@@ -5,5 +5,7 @@ type ReadTickerRequest struct {
 }
 
 type ReadTickerResponse struct {
-	Currency float64 `json:"currency"`
+	Currency   float64 `json:"currency"`
+	TickerFrom string  `json:"tf"`
+	TickerTo   string  `json:"tt"`
 }

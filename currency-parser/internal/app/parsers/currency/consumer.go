@@ -15,9 +15,11 @@ import (
 	"time"
 )
 
-func Consumer(tickerFrom string, ticketTo string) {
+func Consumer(tickerFrom string, tickerTo string) {
 	tickerFullChanged := false
-	tickerFull := tickerFrom + ticketTo
+	tickerFull := tickerFrom + tickerTo
+	tickerToP := tickerTo
+	tickerFromP := tickerFrom
 	logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Start parsing.", nil)
 
 	var unixTimeStart int64
@@ -82,7 +84,9 @@ func Consumer(tickerFrom string, ticketTo string) {
 				logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] No data in response. Stop parsing.", nil)
 				break
 			} else {
-				tickerFull = ticketTo + tickerFrom
+				tickerFromP = tickerTo
+				tickerToP = tickerFrom
+				tickerFull = tickerTo + tickerFrom
 				tickerFullChanged = true
 				continue
 			}
@@ -99,6 +103,8 @@ func Consumer(tickerFrom string, ticketTo string) {
 					Low:    tickerDynamic.Chart.Result[0].Indicators.Quote[0].Low[i],
 					Volume: tickerDynamic.Chart.Result[0].Indicators.Quote[0].Volume[i],
 				},
+				TickerFrom: tickerFromP,
+				TickerTo:   tickerToP,
 			}
 			byteResponseJSON, err := json.Marshal(tickerDynamicJSONOutcoming)
 			if err != nil {
@@ -109,10 +115,10 @@ func Consumer(tickerFrom string, ticketTo string) {
 				byteResponseJSON)
 			database.Redis.Set(context.Background(), config.RedisLastCurrenciesTag+":"+tickerFull, byteResponseJSON, 0)
 
-			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequest{TickerGroup: tickerFull,
-				TickerFrom: tickerFrom, TickerTo: ticketTo, Data: tickerDynamicJSONOutcoming})
-			go amqp.SendCurrencyUpdateToDeals(currency.CurrencyUpdateRequest{TickerGroup: tickerFull,
-				TickerFrom: tickerFrom, TickerTo: ticketTo, Data: tickerDynamicJSONOutcoming})
+			go amqp.SendCurrencyUpdateToCurrency(currency.CurrencyUpdateRequestToCurrency{TickerGroup: tickerFull,
+				TickerFrom: tickerFromP, TickerTo: tickerToP, Data: tickerDynamicJSONOutcoming})
+			go amqp.SendCurrencyUpdateToDeals(currency.CurrencyUpdateRequestToDeals{TickerGroup: tickerFull,
+				TickerFrom: tickerFromP, TickerTo: tickerToP, Currency: tickerDynamicJSONOutcoming.Kline.Close})
 			logger.Log(LoggerTypes.INFO, "[Currency-parser | Currency | "+tickerFull+"] Parsed data for "+time.Unix(tickerDynamicJSONOutcoming.Timestamp, 0).String(), nil)
 		}
 		req.Body.Close()

@@ -1,19 +1,14 @@
 package types
 
-type DealType string
-
-const (
-	BUY  DealType = "BUY"
-	SELL          = "SELL"
-)
-
 type GetCurrencyJSONResponse struct {
-	EventTime int64 `json:"E"`
-	Kline     struct {
-		OpenPrice  float64 `json:"o"`
-		ClosePrice float64 `json:"c"`
-		HighPrice  float64 `json:"h"`
-		LowPrice   float64 `json:"l"`
-		BaseVolume int64   `json:"v"`
+	EventTime  int64  `json:"E"`
+	TickerFrom string `json:"tf"`
+	TickerTo   string `json:"tt"`
+	Kline      struct {
+		OpenPrice  string `json:"o"`
+		ClosePrice string `json:"c"`
+		HighPrice  string `json:"h"`
+		LowPrice   string `json:"l"`
+		BaseVolume string `json:"v"`
 	} `json:"k"`
 }

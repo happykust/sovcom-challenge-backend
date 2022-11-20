@@ -9,26 +9,15 @@ import (
 
 func CreateCurrencyBuyDealHandler(request currencyDealsLib.CurrencyDealBuyRequest) currencyDealsLib.CurrencyDealBuyResponse {
 	CreateCurrencyDealRepository(CurrencyDeal{
-		UserID:   request.UserID,
-		Ticker:   request.Ticker,
-		Amount:   request.Amount,
-		Currency: request.Currency,
-		Trigger:  types.CurrencyDealTrigger(request.Trigger),
-		Type:     types.BUY,
+		UserID:      request.UserID,
+		TickerGroup: request.TickerGroup,
+		TickerFrom:  request.TickerFrom,
+		TickerTo:    request.TickerTo,
+		Amount:      request.Amount,
+		Currency:    request.Currency,
+		Trigger:     types.CurrencyDealTrigger(request.Trigger),
 	})
 	return currencyDealsLib.CurrencyDealBuyResponse{Message: "OK"}
-}
-
-func CreateCurrencySellDealHandler(request currencyDealsLib.CurrencyDealSellRequest) currencyDealsLib.CurrencyDealSellResponse {
-	CreateCurrencyDealRepository(CurrencyDeal{
-		UserID:   request.UserID,
-		Ticker:   request.Ticker,
-		Amount:   request.Amount,
-		Currency: request.Currency,
-		Trigger:  types.CurrencyDealTrigger(request.Trigger),
-		Type:     types.SELL,
-	})
-	return currencyDealsLib.CurrencyDealSellResponse{Message: "OK"}
 }
 
 func ReadCurrencyDealHandler(request currencyDealsLib.CurrencyDealReadRequest) []CurrencyDeal {
@@ -42,95 +31,67 @@ func DeleteCurrencyDealHandler(request currencyDealsLib.CurrencyDealDeleteReques
 }
 
 func ExecuteCurrencyDealsHandler(request currencyDealsLib.IncomingCurrencyChangeRequest) {
-	deals := GetAllCurrencyDealsByTickerRepository(request.Ticker)
+	deals := GetAllCurrencyDealsByTickerRepository(request.TickerGroup)
 	for _, deal := range deals {
 		if (deal.Trigger == types.UP && request.Currency > deal.Currency) ||
 			(deal.Trigger == types.DOWN && request.Currency < deal.Currency) {
-			if deal.Type == types.BUY {
-				CurrencyDealBuyHandler(deal, request)
-			} else {
-				CurrencyDealSellHandler(deal, request)
-			}
+			CurrencyDealBuyHandler(deal, request)
 		}
 	}
 }
 
 func CurrencyDealBuyHandler(deal CurrencyDeal, tickerChange currencyDealsLib.IncomingCurrencyChangeRequest) {
-	userRUBBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: deal.UserID, Ticker: "RUB"})
+	reverseDeal := false
 
-	cost := deal.Amount * tickerChange.Currency
-	if userRUBBalance.Amount < cost {
+	if deal.TickerTo == tickerChange.TickerFrom {
+		reverseDeal = true
+	}
+
+	userTickerFromBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: deal.UserID,
+		Ticker: deal.TickerFrom})
+
+	var cost float64
+	cost = deal.Amount / tickerChange.Currency
+	if reverseDeal {
+		cost = deal.Amount * tickerChange.Currency
+	}
+
+	if userTickerFromBalance.Ticker == "" {
+		ChangeCurrencyDealStatusRepository(deal.ID, true,
+			"Произошла ошибка при попытке получения данных. Обратитесь в службу тех. поддержки.")
+		return
+	}
+
+	if userTickerFromBalance.Amount < cost {
 		ChangeCurrencyDealStatusRepository(deal.ID, true, "Недостаточно средств для проведения сделки.")
 		return
 	}
 
-	updatedRUBBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
+	updatedTickerFromBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 		UserID: deal.UserID,
-		Ticker: "RUB",
+		Ticker: deal.TickerFrom,
 		Amount: -cost,
 	})
-	if updatedRUBBalance.Status == false {
+	if updatedTickerFromBalance.Status == false || updatedTickerFromBalance.Ticker == "" {
 		ChangeCurrencyDealStatusRepository(deal.ID, false,
 			"Невозможно обновить рублевой баланс пользователя.")
 		return
 	}
 
-	updatedTickerBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
+	updatedTickerToBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 		UserID: deal.UserID,
-		Ticker: deal.Ticker,
+		Ticker: deal.TickerTo,
 		Amount: deal.Amount,
 	})
 
-	if updatedTickerBalance.Status == false {
+	if updatedTickerToBalance.Status == false || updatedTickerToBalance.Ticker == "" {
 		amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
 			UserID: deal.UserID,
-			Ticker: "RUB",
+			Ticker: deal.TickerTo,
 			Amount: cost,
 		})
 		ChangeCurrencyDealStatusRepository(deal.ID, true,
-			"Невозможно осуществить ролл-бек баланса пользователя. Ожидается обращение в тех. поддержку.")
-		return
-	}
-
-	ChangeCurrencyDealStatusRepository(deal.ID, true, "Сделка успешно проведена.")
-}
-
-func CurrencyDealSellHandler(deal CurrencyDeal, tickerChange currencyDealsLib.IncomingCurrencyChangeRequest) {
-	userBalance := amqp.GetUserBalances(payments.GetBalancesRequest{UserID: deal.UserID, Ticker: deal.Ticker})
-
-	if userBalance.Amount < deal.Amount {
-		ChangeCurrencyDealStatusRepository(deal.ID, true, "Недостаточно средств для проведения сделки.")
-		return
-	}
-
-	cost := deal.Amount * tickerChange.Currency
-
-	updatedTickerBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
-		UserID: deal.UserID,
-		Ticker: deal.Ticker,
-		Amount: -deal.Amount,
-	})
-
-	if updatedTickerBalance.Status == false {
-		ChangeCurrencyDealStatusRepository(deal.ID, false,
-			"Невозможно обновить рублевой баланс пользователя.")
-		return
-	}
-
-	updatedRUBBalance := amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
-		UserID: deal.UserID,
-		Ticker: "RUB",
-		Amount: cost,
-	})
-
-	if updatedRUBBalance.Status == false {
-		amqp.UpdateUserBalances(payments.UpdateBalanceRequest{
-			UserID: deal.UserID,
-			Ticker: deal.Ticker,
-			Amount: deal.Amount,
-		})
-		ChangeCurrencyDealStatusRepository(deal.ID, true,
-			"Невозможно осуществить ролл-бек баланса пользователя. Ожидается обращение в тех. поддержку.")
+			"Невозможно осуществить ролл-бек баланса пользователя. Обратитесь в службу тех. поддержки.")
 		return
 	}
 

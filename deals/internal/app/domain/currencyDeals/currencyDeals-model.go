@@ -7,13 +7,14 @@ import (
 
 type CurrencyDeal struct {
 	gorm.Model
-	UserID   uint
-	Type     types.DealType
-	Ticker   string
-	Amount   float64
-	Currency float64
-	Status   bool   `gorm:"default:false"`
-	Tried    bool   `gorm:"default:false"`
-	Message  string `gorm:"default:''"`
-	Trigger  types.CurrencyDealTrigger
+	UserID      uint
+	TickerGroup string
+	TickerFrom  string
+	TickerTo    string
+	Amount      float64
+	Currency    float64
+	Status      bool   `gorm:"default:false"`
+	Tried       bool   `gorm:"default:false"`
+	Message     string `gorm:"default:''"`
+	Trigger     types.CurrencyDealTrigger
 }

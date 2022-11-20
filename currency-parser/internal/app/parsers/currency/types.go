@@ -26,6 +26,8 @@ type TickerDynamicKlineJSONOutcoming struct {
 }
 
 type TickerDynamicJSONOutcoming struct {
-	Timestamp int64                           `json:"E"`
-	Kline     TickerDynamicKlineJSONOutcoming `json:"k"`
+	Timestamp  int64                           `json:"E"`
+	TickerFrom string                          `json:"tf"`
+	TickerTo   string                          `json:"tt"`
+	Kline      TickerDynamicKlineJSONOutcoming `json:"k"`
 }

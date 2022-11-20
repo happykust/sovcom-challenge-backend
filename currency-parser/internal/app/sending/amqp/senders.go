@@ -7,7 +7,7 @@ import (
 	currencyDeals "libs/contracts/deals/currency"
 )
 
-func SendCurrencyUpdateToCurrency(request currency.CurrencyUpdateRequest) {
+func SendCurrencyUpdateToCurrency(request currency.CurrencyUpdateRequestToCurrency) {
 	exchangeName := currency.CurrencyExchange
 	exchangeType := "topic"
 	routingKey := currency.CurrencyUpdateTopic
@@ -18,7 +18,7 @@ func SendCurrencyUpdateToCurrency(request currency.CurrencyUpdateRequest) {
 	_ = req
 }
 
-func SendCurrencyUpdateToDeals(request currency.CurrencyUpdateRequest) {
+func SendCurrencyUpdateToDeals(request currency.CurrencyUpdateRequestToDeals) {
 	exchangeName := currencyDeals.CurrencyDealsExchange
 	exchangeType := "topic"
 	routingKey := currencyDeals.CurrencyChangeTopic
