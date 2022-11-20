@@ -9,14 +9,14 @@ const (
 )
 
 type CreateTransactionRequest struct {
-	UserId    uint
-	Amount    float64
-	PromoCode string
+	UserId    uint    `json:"user_id"`
+	Amount    float64 `json:"amount"`
+	PromoCode string  `json:"promocode"`
 }
 
 type CreateTransactionResponse struct {
-	TransactionId     string
-	UserId            uint
-	Amount            float64
-	TransactionStatus TransactionStatus
+	TransactionId     string            `json:"transaction_uuid"`
+	UserId            uint              `json:"user_id"`
+	Amount            float64           `json:"amount"`
+	TransactionStatus TransactionStatus `json:"transaction_status"`
 }

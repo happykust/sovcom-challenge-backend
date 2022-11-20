@@ -24,11 +24,11 @@ var UpdateBalanceQueueName = "payments.service.queue.balance.update"
 
 ///
 
-var CreateTransactionTopic = "command.payments.transactions.update"
+var CreateTransactionTopic = "command.payments.transactions.create"
 
-var CreateTransactionConsumerName = "payments.service.consumer.transactions.update"
+var CreateTransactionConsumerName = "payments.service.consumer.transactions.create"
 
-var CreateTransactionQueueName = "payments.service.queue.transactions.update"
+var CreateTransactionQueueName = "payments.service.queue.transactions.create"
 
 var UpdateTransactionStatusTopic = "command.payments.transactions.update"
 
@@ -38,8 +38,8 @@ var UpdateTransactionStatusQueueName = "payments.service.queue.transactions.upda
 
 var UpdateTransactionStatusConsumerName = "payments.service.consumer.transactions.update"
 
-var GetTransactionTopic = "command.payments.balance.update"
+var GetTransactionTopic = "command.payments.transactions.get"
 
-var GetTransactionConsumerName = "payments.service.consumer.transactions.update"
+var GetTransactionConsumerName = "payments.service.consumer.transactions.get"
 
-var GetTransactionQueueName = "payments.service.queue.transactions.update"
+var GetTransactionQueueName = "payments.service.queue.transactions.get"
