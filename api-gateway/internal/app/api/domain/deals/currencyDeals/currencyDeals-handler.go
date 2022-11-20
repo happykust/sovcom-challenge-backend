@@ -11,7 +11,8 @@ import (
 
 func CreateCurrencyDeal(c *gin.Context) {
 	payload := token.ValidateAccToken(c)
-	if payload == nil {
+	if payload == nil || payload.UserVerified == false || payload.Ban == true {
+		c.JSON(500, "Invalid token.")
 		return
 	}
 
@@ -30,18 +31,46 @@ func CreateCurrencyDeal(c *gin.Context) {
 	return
 }
 
-//func DeleteCurrencyDeal(c *gin.Context) {
-//	jsonObject := validateCurrencyDealDelete(c)
-//	if jsonObject == nil {
-//		return
-//	}
-//	req := amqp.Delete(jsonObject)
-//	objectReq := currencyDeals.CurrencyDealSellResponse{}
-//	err := json.Unmarshal(req, &objectReq)
-//	if err != nil {
-//		c.JSON(500, err)
-//		return
-//	}
-//	c.JSON(http.StatusOK, objectReq)
-//	return
-//}
+func DeleteCurrencyDeal(c *gin.Context) {
+	payload := token.ValidateAccToken(c)
+	if payload == nil || payload.UserVerified == false || payload.Ban == true {
+		c.JSON(500, "Invalid token.")
+		return
+	}
+
+	jsonObject := validateCurrencyDealDelete(c)
+	if jsonObject == nil {
+		return
+	}
+	req := amqp.Delete(jsonObject)
+	objectReq := currencyDeals.CurrencyDealSellResponse{}
+	err := json.Unmarshal(req, &objectReq)
+	if err != nil {
+		c.JSON(500, err)
+		return
+	}
+	c.JSON(http.StatusOK, objectReq)
+	return
+}
+
+func ReadCurrencyDeal(c *gin.Context) {
+	payload := token.ValidateAccToken(c)
+	if payload == nil || payload.UserVerified == false || payload.Ban == true {
+		c.JSON(500, "Invalid token.")
+		return
+	}
+
+	jsonObject := validateCurrencyDealRead(payload.Id)
+	if jsonObject == nil {
+		return
+	}
+	req := amqp.Read(jsonObject)
+	objectReq := currencyDeals.CurrencyDealReadResponse{}
+	err := json.Unmarshal(req, &objectReq)
+	if err != nil {
+		c.JSON(500, err)
+		return
+	}
+	c.JSON(http.StatusOK, objectReq)
+	return
+}

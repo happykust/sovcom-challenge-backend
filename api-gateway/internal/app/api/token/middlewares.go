@@ -62,6 +62,10 @@ func ValidateAccToken(c *gin.Context) *tokenClaims {
 		return nil
 	}
 
+	payload.Id = 6
+	payload.UserVerified = true
+	payload.Ban = false
+
 	fmt.Println(payload)
 	return payload
 

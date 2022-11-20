@@ -42,3 +42,31 @@ func validateCurrencyDealBuy(c *gin.Context, userId uint) []byte {
 
 	return jsonObject
 }
+
+func validateCurrencyDealDelete(c *gin.Context) []byte {
+	var input CurrencyDeals.CurrencyDealDeleteRequest
+
+	if err := c.BindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body."})
+		return []byte(err.Error())
+	}
+
+	jsonObject, errPars := json.Marshal(input)
+	if errPars != nil {
+		log.Fatal(errPars)
+	}
+
+	return jsonObject
+}
+
+func validateCurrencyDealRead(userId uint) []byte {
+	var input CurrencyDeals.CurrencyDealReadRequest
+	input.UserID = userId
+
+	jsonObject, errPars := json.Marshal(input)
+	if errPars != nil {
+		log.Fatal(errPars)
+	}
+
+	return jsonObject
+}
