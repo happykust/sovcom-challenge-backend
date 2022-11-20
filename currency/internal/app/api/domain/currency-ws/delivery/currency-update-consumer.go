@@ -21,7 +21,7 @@ func CurrencyUpdateConsumer() {
 	go func() {
 		logger.Log(LoggerTypes.INFO, "[Currency | Update consumer] Waiting for message", nil)
 		for d := range messageChannel {
-			currencyUpdate := &currency.CurrencyUpdateRequest{}
+			currencyUpdate := &currency.CurrencyUpdateRequestToCurrency{}
 			err := json.Unmarshal(d.Body, currencyUpdate)
 			if err != nil {
 				logger.Log(LoggerTypes.CRITICAL,
