@@ -2,7 +2,7 @@ package currencyDeals
 
 import (
 	"api-gateway/internal/app/api/domain/deals/currencyDeals/delivery/amqp"
-	"api-gateway/internal/app/api/token"
+	"api-gateway/internal/app/api/token/middleware"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	currencyDeals "libs/contracts/deals/currency"
@@ -10,7 +10,7 @@ import (
 )
 
 func CreateCurrencyDeal(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return
@@ -32,7 +32,7 @@ func CreateCurrencyDeal(c *gin.Context) {
 }
 
 func DeleteCurrencyDeal(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return
@@ -54,7 +54,7 @@ func DeleteCurrencyDeal(c *gin.Context) {
 }
 
 func ReadCurrencyDeal(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return

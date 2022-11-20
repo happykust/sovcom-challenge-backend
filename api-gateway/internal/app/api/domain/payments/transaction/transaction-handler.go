@@ -2,7 +2,7 @@ package transaction
 
 import (
 	"api-gateway/internal/app/api/domain/payments/transaction/delivery/amqp"
-	"api-gateway/internal/app/api/token"
+	"api-gateway/internal/app/api/token/middleware"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"libs/contracts/payments"
@@ -10,7 +10,7 @@ import (
 )
 
 func CreateTransaction(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return
@@ -32,7 +32,7 @@ func CreateTransaction(c *gin.Context) {
 }
 
 func GetTransaction(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return
@@ -54,7 +54,7 @@ func GetTransaction(c *gin.Context) {
 }
 
 func UpdateTransactionStatus(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return

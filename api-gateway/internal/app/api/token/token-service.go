@@ -18,7 +18,7 @@ const (
 	RoleUser      Role = "user"
 )
 
-type tokenClaims struct {
+type TokenClaims struct {
 	jwt.StandardClaims
 	Id           uint `json:"id"`
 	UserVerified bool `json:"user_verified"`
@@ -30,8 +30,8 @@ const (
 	tokenTTL = 12 * time.Hour
 )
 
-func ParseToken(accessToken string) (*tokenClaims, error) {
-	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func ParseToken(accessToken string) (*TokenClaims, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			logger.Log(LoggerTypes.CRITICAL, "Could not parse token", nil)
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -43,7 +43,7 @@ func ParseToken(accessToken string) (*tokenClaims, error) {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*tokenClaims)
+	claims, ok := token.Claims.(*TokenClaims)
 	//fmt.Println(claims.Id)
 	if !ok {
 		logger.Log(LoggerTypes.CRITICAL, "Could not parse token", err)

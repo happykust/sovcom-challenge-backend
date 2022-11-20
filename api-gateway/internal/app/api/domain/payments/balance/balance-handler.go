@@ -2,7 +2,7 @@ package balance
 
 import (
 	"api-gateway/internal/app/api/domain/payments/balance/delivery/amqp"
-	"api-gateway/internal/app/api/token"
+	"api-gateway/internal/app/api/token/middleware"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"libs/contracts/payments"
@@ -10,7 +10,7 @@ import (
 )
 
 func GetBalance(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return

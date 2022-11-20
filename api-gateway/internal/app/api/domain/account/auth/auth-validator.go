@@ -85,7 +85,6 @@ func validateUserRefresh(c *gin.Context) []byte {
 }
 
 func validateUserLogout(c *gin.Context) []byte {
-
 	token, err := c.Cookie("token")
 	if err != nil {
 		c.JSON(500, err)
@@ -102,4 +101,26 @@ func validateUserLogout(c *gin.Context) []byte {
 
 	return jsonObject
 
+}
+
+func validateVerifyRequest(c *gin.Context, userId uint) []byte {
+	var input account.AccountVerifyRequest
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body."})
+		return []byte(err.Error())
+	}
+
+	input.Id = userId
+
+	if input.AdditionalContact == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid additional contact."})
+		return []byte("Invalid additional contact.")
+	}
+
+	jsonObject, errPars := json.Marshal(input)
+	if errPars != nil {
+		fmt.Println("err")
+	}
+	return jsonObject
 }

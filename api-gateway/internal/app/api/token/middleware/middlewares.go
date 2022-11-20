@@ -1,7 +1,8 @@
-package token
+package middleware
 
 import (
 	"api-gateway/internal/app/api/domain/account/auth"
+	"api-gateway/internal/app/api/token"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -43,7 +44,7 @@ const (
 //
 //}
 
-func ValidateAccToken(c *gin.Context) *tokenClaims {
+func ValidateAccToken(c *gin.Context) *token.TokenClaims {
 
 	accToken, err := c.Cookie("access_token")
 
@@ -56,7 +57,7 @@ func ValidateAccToken(c *gin.Context) *tokenClaims {
 		return nil
 	}
 
-	payload, err := ParseToken(accToken)
+	payload, err := token.ParseToken(accToken)
 	if err != nil {
 		auth.NewErrorResponse(c, http.StatusUnauthorized, err.Error())
 		return nil

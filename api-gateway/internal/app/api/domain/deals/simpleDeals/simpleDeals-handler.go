@@ -2,7 +2,7 @@ package simpleDeals
 
 import (
 	"api-gateway/internal/app/api/domain/deals/simpleDeals/delivery/amqp"
-	"api-gateway/internal/app/api/token"
+	"api-gateway/internal/app/api/token/middleware"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	simpleDeals "libs/contracts/deals/simple"
@@ -10,7 +10,7 @@ import (
 )
 
 func CreateSimpleDeal(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return

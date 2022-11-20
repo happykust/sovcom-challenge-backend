@@ -2,7 +2,7 @@ package promocodes
 
 import (
 	"api-gateway/internal/app/api/domain/loyality/promocodes/delivery/amqp"
-	"api-gateway/internal/app/api/token"
+	"api-gateway/internal/app/api/token/middleware"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"libs/contracts/loyality/promocodes"
@@ -11,7 +11,7 @@ import (
 )
 
 func CreatePromocode(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true || payload.Role == "user" {
 		c.JSON(500, "Invalid token.")
 		return
@@ -33,7 +33,7 @@ func CreatePromocode(c *gin.Context) {
 }
 
 func DeletePromocode(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true || payload.Role == "user" {
 		c.JSON(500, "Invalid token.")
 		return
@@ -55,7 +55,7 @@ func DeletePromocode(c *gin.Context) {
 }
 
 func ReadPromocode(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true || payload.Role == "user" {
 		c.JSON(500, "Invalid token.")
 		return
@@ -77,7 +77,7 @@ func ReadPromocode(c *gin.Context) {
 }
 
 func UpdatePromocode(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true || payload.Role == "user" {
 		c.JSON(500, "Invalid token.")
 		return
@@ -99,7 +99,7 @@ func UpdatePromocode(c *gin.Context) {
 }
 
 func UsePromocode(c *gin.Context) {
-	payload := token.ValidateAccToken(c)
+	payload := middleware.ValidateAccToken(c)
 	if payload == nil || payload.UserVerified == false || payload.Ban == true {
 		c.JSON(500, "Invalid token.")
 		return

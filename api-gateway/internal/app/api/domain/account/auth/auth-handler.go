@@ -65,13 +65,31 @@ func RefreshTokenEvent(c *gin.Context) {
 }
 
 func LogoutUserEvent(c *gin.Context) {
-	//jsonObject := validateUserLogout(c)
-	//if jsonObject == nil {
-	//	return
-	//}
-	//req := amqp.Logout(jsonObject)
 	c.SetCookie("token", "", -1, "", "localhost", true, true)
 	c.SetCookie("access_token", "", -1, "", "localhost", true, true)
 	c.JSON(200, "Logout")
 	return
 }
+
+//TODO: Fix cycle imports!
+//func VerifyUserRequest(c *gin.Context) {
+//	payload := middleware.ValidateAccToken(c)
+//	if payload == nil || payload.UserVerified == false || payload.Ban == true {
+//		c.JSON(500, "Invalid token.")
+//		return
+//	}
+//
+//	jsonObject := validateVerifyRequest(c, payload.Id)
+//	if jsonObject == nil {
+//		return
+//	}
+//	req := amqp.Verify(jsonObject)
+//	objectReq := account.AccountVerifyResponse{}
+//	err := json.Unmarshal(req, &objectReq)
+//	if err != nil {
+//		c.JSON(500, err)
+//		return
+//	}
+//	c.JSON(http.StatusOK, objectReq)
+//	return
+//}

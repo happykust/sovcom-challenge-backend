@@ -54,3 +54,14 @@ func Logout(jsonObj []byte) []byte {
 	return req
 
 }
+
+func Verify(jsonObj []byte) []byte {
+	exchangeName := account.AccountExchange
+	exchangeType := "topic"
+	routingKey := account.VerifyTopic
+	body := jsonObj
+	connName := account.VerifyConsumerName
+
+	req := amqp_easier.PublishConstructor(connName, exchangeName, exchangeType, &routingKey, &body)
+	return req
+}
