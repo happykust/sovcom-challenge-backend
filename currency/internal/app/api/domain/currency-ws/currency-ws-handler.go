@@ -65,7 +65,7 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ReceiveCurrencyUpdate(currencyUpdate currency.CurrencyUpdateRequest) {
+func ReceiveCurrencyUpdate(currencyUpdate currency.CurrencyUpdateRequestToCurrency) {
 	for conn := range authorizedConnections {
 		userData := authorizedUsersDatas[conn]
 		if userData.SubscribeTo == currencyUpdate.TickerGroup {

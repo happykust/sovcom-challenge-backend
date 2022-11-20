@@ -4,7 +4,6 @@ import (
 	"currency/internal/app/routers"
 	"currency/pkg/core/config"
 	"currency/pkg/core/database"
-	"currency/pkg/core/database/migrations"
 	logger "currency/pkg/logging"
 	LoggerTypes "currency/pkg/logging/types"
 	"currency/server"
@@ -12,8 +11,6 @@ import (
 
 func init() {
 	config.Init()
-	database.OpenPostgresConnect()
-	migrations.InitMigrations()
 	database.OpenRedisConnect()
 }
 
