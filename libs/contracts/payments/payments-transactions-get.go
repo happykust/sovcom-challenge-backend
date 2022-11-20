@@ -5,9 +5,9 @@ type PaymentsTransactionsGet struct {
 }
 
 type PaymentsTransactionsGetResponse struct {
-	TransactionUUID   string `json:"transaction_uuid"`
-	UserId            uint   `json:"user_id"`
-	Amount            string `json:"amount"`
-	PromoCode         string `json:"promocode" gorm:"default:'NO_PROMO'"`
-	TransactionStatus string `json:"transaction_status" gorm:"default:PROCESSING"`
+	TransactionUUID   string  `json:"TransactionUUID"`
+	UserId            uint    `json:"UserId"`
+	Amount            float64 `json:"Amount"`
+	PromoCode         string  `json:"PromoCode" gorm:"default:'NO_PROMO'"`
+	TransactionStatus string  `json:"TransactionStatus" gorm:"default:PROCESSING"`
 }

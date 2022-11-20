@@ -22,7 +22,7 @@ func CreatePromocode(c *gin.Context) {
 		return
 	}
 	req := amqp.Create(jsonObject)
-	objectReq := payments.GetBalancesRequest{}
+	objectReq := payments.GetBalancesResponse{}
 	err := json.Unmarshal(req, &objectReq)
 	if err != nil {
 		c.JSON(500, err)

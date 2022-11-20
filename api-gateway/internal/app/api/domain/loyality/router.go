@@ -2,6 +2,7 @@ package loyality
 
 import (
 	promocodesHttpRouter "api-gateway/internal/app/api/domain/loyality/promocodes/delivery/http"
+
 	"github.com/gin-gonic/gin"
 )
 
