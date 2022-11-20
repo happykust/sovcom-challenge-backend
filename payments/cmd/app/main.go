@@ -16,15 +16,14 @@ func main() {
 	migrations.InitMigrations()
 	//s := transactions.TransactionMock(payments.CreateTransactionRequest{UserId: 4, Amount: 1000000000, PromoCode: "dffd"})
 	//fmt.Println(s)
-	go router.MainAmqpRouter()
-	select {}
 
-	//balance.CreateUserBalance(4)
-	//balance.CreateUserWallet(balance.Wallet{BalanceId: 4, Ticker: "USD", Amount: 1000})
-	//balance.GetUserBalance(payments.PaymentsCheckBalanceByRequest{UserID: 4, Currency: "RUB"})
-	//balance.GetUserBalance(payments.PaymentsCheckBalanceByRequest{UserID: 4, Currency: "USD"})
+	//balance.CreateUserBalance(1)
+	//balance.CreateUserWallet(balance.Wallet{BalanceId: 1, Ticker: "ETH", Amount: 100000000000})
+	//balance.GetUserBalance(payments.GetBalancesRequest{UserID: 1, Ticker: "ETH"})
 	//balance.CreateUserEvent(100)
 	//test := balance.UpdateUserBalance(payments.UpdateBalanceRequest{UserID: 4, Ticker: "sdsd", Amount: 10000000000000})
 	//fmt.Println(test)
+	go router.MainAmqpRouter()
+	select {}
 
 }
