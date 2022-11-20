@@ -28,7 +28,7 @@ func SingUp(payload account.AccountSignUpRequest) account.AccountSignUpResponse 
 	createdUnverifiedUser := CreatingUnverifiedUser(UnverifiedUsers{Email: payload.Email, PasswordHash: hashPassword, UserName: payload.Username, FirstName: payload.FirstName, LastName: payload.LastName})
 	AccessToken, RefreshToken := GenerateTokens(createdUnverifiedUser.ID, createdUnverifiedUser.Ban, false, user.RoleUser)
 	UpdateRefreshTokenUnverifiedUser(createdUnverifiedUser.ID, RefreshToken)
-	emailMessage := email.Request{Email: payload.Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
+	emailMessage := email.Request{Email: payload.Email, Subject: "Поздравляем, Ваш аккаунт зарегистрирован", Body: "Для взаимодействия с основными функционалом платформы нужно верифицировать аккаунт, сделать это можно в профиле "}
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
@@ -57,7 +57,7 @@ func VerifyUserRequest(payload account.AccountVerifyRequest) account.AccountVeri
 	SetAssistants(user[0].ID, 1)
 	user = GetUnverifiedUserById(payload.Id)
 	message := "Вам назначен персональный помощник"
-	emailMessage := email.Request{Email: user[0].Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
+	emailMessage := email.Request{Email: user[0].Email, Subject: "Вы отправили запрос на верификацию!", Body: "Ожидайте, скоро с Вами свяжется администратор"}
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
@@ -98,7 +98,7 @@ func CreatedVerifiedUserAccount(payload user.User) []user.User {
 	findNotVerifiedUser := GetUnverifiedUserByEmail(payload.Email)
 	DeleteUnverifiedUserProfile(findNotVerifiedUser[0].ID)
 	NewUser := FindUserById(payload.ID)
-	emailMessage := email.Request{Email: payload.Email, Subject: "Вы создали акк", Body: "первое сообщени 28"}
+	emailMessage := email.Request{Email: payload.Email, Subject: "Ваш аккаунт верифицирован! ", Body: "Перейдите в профиль для более подробной информации"}
 	jsonObj, err := json.Marshal(emailMessage)
 	if err != nil {
 		logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)
@@ -131,7 +131,7 @@ func SingIn(UserEmail string, password string) account.AccountSignInResponse {
 		if !validateUserPassword {
 			return account.AccountSignInResponse{Message: "User not found"}
 		}
-		emailMessage := email.Request{Email: UserEmail, Subject: "Вы создали акк", Body: "первое сообщени 28"}
+		emailMessage := email.Request{Email: UserEmail, Subject: "В Ваш аккаунт выполнен вход", Body: "Это были Вы? Подробнее можно узнать в профиле"}
 		jsonObj, err := json.Marshal(emailMessage)
 		if err != nil {
 			logger.Log(LoggerTypes.CRITICAL, "Marshal error", err)

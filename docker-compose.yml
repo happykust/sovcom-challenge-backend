@@ -7,4 +7,66 @@ services:
     restart: always
     container_name: api-gateway
     ports:
+      - "9090:9090"
+  service-acconts:
+    build:
+#      context: ./
+      dockerfile: ../SovcombankTeamChallenge-Backend/account/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-accounts
+  service-currency:
+    build:
+#      context: .
+      dockerfile: ../SovcombankTeamChallenge-Backend/currency/deployments/docker/Dockerfile
+    restart: always
+    ports:
+      - "7070:7070"
+    container_name: service-currency
+  service-currency-parser:
+    build:
+      dockerfile: ../SovcombankTeamChallenge-Backend/currency-parser/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-currency-parser
+  service-deals:
+    build:
+#      context: .
+      dockerfile: ../SovcombankTeamChallenge-Backend/deals/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-deals
+  service-email:
+    build:
+#      context: .
+      dockerfile: ../SovcombankTeamChallenge-Backend/email/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-email
+  service-loyality:
+    build:
+#      context: .
+      dockerfile: ../SovcombankTeamChallenge-Backend/loyality/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-loyality
+  service-payments:
+    build:
+#      context: .
+      dockerfile: ../SovcombankTeamChallenge-Backend/payments/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-payments
+  service-support:
+    build:
+      dockerfile: ../SovcombankTeamChallenge-Backend/support/deployments/docker/Dockerfile
+    restart: always
+    container_name: service-support
+    ports:
       - "8080:8080"
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - cache:/data
+volumes:
+  cache:
+    driver: local
+
