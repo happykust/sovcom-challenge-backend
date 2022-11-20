@@ -36,6 +36,8 @@ var UpdateTransactionStatusName = "payments.service.consumer.transactions.update
 
 var UpdateTransactionStatusQueueName = "payments.service.queue.transactions.update"
 
+var UpdateTransactionStatusConsumerName = "payments.service.consumer.transactions.update"
+
 var GetTransactionTopic = "command.payments.balance.update"
 
 var GetTransactionConsumerName = "payments.service.consumer.transactions.update"
