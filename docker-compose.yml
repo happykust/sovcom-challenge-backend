@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+  api-geteway:
+    build:
+     # context: ./api-gateway
+      dockerfile: ../SovcombankTeamChallenge-Backend/api-gateway/deployments/docker/Dockerfile
+    restart: always
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
