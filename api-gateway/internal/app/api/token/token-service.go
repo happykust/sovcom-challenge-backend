@@ -44,7 +44,7 @@ func ParseToken(accessToken string) (*tokenClaims, error) {
 	}
 
 	claims, ok := token.Claims.(*tokenClaims)
-	fmt.Println(claims.Id)
+	//fmt.Println(claims.Id)
 	if !ok {
 		logger.Log(LoggerTypes.CRITICAL, "Could not parse token", err)
 		return nil, errors.New("token claims are not of type *tokenClaims")

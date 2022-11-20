@@ -53,7 +53,8 @@ func SupportValidateRequest() {
 }
 
 func CurrencyValidateRequest() {
-	messageChannel, amqpChannel, conn := amqp_easier.ConsumerConstructor(currency.CurrencyToAccountsConsumerName, account.AccountExchange, "topic", currency.CurrencyToAccountsRoutingKey, currency.CurrencyToAccountsQueueName)
+	messageChannel, amqpChannel, conn := amqp_easier.ConsumerConstructor(currency.CurrencyToAccountsConsumerName,
+		account.AccountExchange, "topic", currency.CurrencyToAccountsRoutingKey, currency.CurrencyToAccountsQueueName)
 	defer func(amqpChannel *amqp.Channel) {
 		err := amqpChannel.Close()
 		if err != nil {
