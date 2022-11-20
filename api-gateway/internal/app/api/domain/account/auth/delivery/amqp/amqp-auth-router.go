@@ -2,15 +2,17 @@ package amqp
 
 import (
 	amqp_easier "api-gateway/pkg/core/broker/amqp-easier"
+	"fmt"
 	"libs/contracts/account"
 )
 
 func Register(jsonObj []byte) []byte {
 	exchangeName := account.AccountExchange
 	exchangeType := "topic"
-	routingKey := account.SingUp
+	routingKey := account.SignUpTopic
 	body := jsonObj
-	connName := account.SingUpConsumerName
+	connName := account.SignUpConsumerName
+	fmt.Println("Register")
 
 	req := amqp_easier.PublishConstructor(connName, exchangeName, exchangeType, &routingKey, &body)
 

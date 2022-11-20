@@ -8,54 +8,70 @@ import (
 )
 
 const (
-	authorizationHeader = "Authorization"
-	userCtx             = "userId"
+	userId       = "userId"
+	userBan      = "userBan"
+	userVerified = "userVerified"
+	userRole     = "userRole"
 )
 
-func validateRfToken(c *gin.Context) {
+//
+//func Middleware(c *gin.Context) {
+//	//validateRfToken(c)
+//	validateAccToken(c)
+//}
 
-	rfToken, err := c.Cookie("token")
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
+//func validateRfToken(c *gin.Context) {
+//
+//	rfToken, err := c.Cookie("token")
+//	if err != nil {
+//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
+//
+//	}
+//	if rfToken == "" {
+//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
+//		return
+//	}
+//
+//	payloadR, err := ParseToken(rfToken)
+//	if err != nil {
+//		auth.NewErrorResponse(c, http.StatusUnauthorized, err.Error())
+//		return
+//	}
+//
+//	c.Set(userCtx, payloadR)
+//	fmt.Print(payloadR)
+//
+//}
 
-	}
-	if rfToken == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
-		return
-	}
-
-	userId, err := ParseToken(rfToken)
-	if err != nil {
-		auth.NewErrorResponse(c, http.StatusUnauthorized, err.Error())
-		return
-	}
-
-	c.Set(userCtx, userId)
-	fmt.Print(userId)
-
-}
-
-func validateAccToken(c *gin.Context) {
+func ValidateAccToken(c *gin.Context) *tokenClaims {
 
 	accToken, err := c.Cookie("access_token")
+
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing access token"})
-		return
+		return nil
 	}
 	if accToken == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing access token"})
-		return
+		return nil
 	}
 
-	userId, err := ParseToken(accToken)
+	payload, err := ParseToken(accToken)
 	if err != nil {
 		auth.NewErrorResponse(c, http.StatusUnauthorized, err.Error())
-		return
+		return nil
 	}
 
-	c.Set(userCtx, userId)
-	fmt.Print(userId)
+	fmt.Println(payload)
+	return payload
 
+	//c.Set(userId, payload.Id)
+	//c.Set(userBan, payload.Ban)
+	//c.Set(userVerified, payload.UserVerified)
+	//c.Set(userRole, payload.Role)
+	////fmt.Println(payload.Id)
+	//c.Next()
+	//return nil
 }
 
 //func UserIdentify(c *gin.Context) {

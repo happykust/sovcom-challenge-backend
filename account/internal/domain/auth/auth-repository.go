@@ -3,6 +3,7 @@ package auth
 import (
 	"account/internal/domain/user"
 	"account/pkg/core/database"
+	"libs/contracts/account"
 )
 
 func CreatingUnverifiedUser(userData UnverifiedUsers) UnverifiedUsers {
@@ -84,6 +85,33 @@ func DeleteUnverifiedUserProfile(id uint) bool {
 func BanUserStatusUpdate(userId uint, ban bool) bool {
 	database.PG.Exec("UPDATE users SET ban = ? WHERE id = ?", ban, userId)
 	return true
+}
+func GetAllUnverifiedUsers() []account.AccountGetOneNVUserResponse {
+	var usersI []UnverifiedUsers
+	database.PG.Find(&usersI)
+	var users []account.AccountGetOneNVUserResponse
+	for _, user := range usersI {
+		users = append(users, account.AccountGetOneNVUserResponse{UserName: user.UserName, Email: user.Email,
+			FirstName: user.FirstName, LastName: user.LastName, Ban: user.Ban, ReferralCode: user.ReferralCode})
+	}
+	return users
+}
+
+func GetAllUsers() []user.User {
+	var users []user.User
+	database.PG.Find(&users)
+	return users
+}
+
+func UpdateUserRoleStatus(userId uint, role user.Role) bool {
+	database.PG.Exec("UPDATE users SET role = ? WHERE id = ?", role, userId)
+	return true
+}
+
+func GetUserRoleStatus(userId uint) user.Role {
+	var status user.Role
+	database.PG.Raw("SELECT role FROM users WHERE id = ?", userId).Scan(&status)
+	return status
 }
 
 func GetUserBanStatus(userId uint) bool {

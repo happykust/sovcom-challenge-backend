@@ -38,7 +38,7 @@ func LoginUserEvent(c *gin.Context) {
 		c.JSON(500, err)
 		return
 	}
-	c.SetCookie("token", objectReq.RefreshToken, 360000, "/", "localhost", true, true)
+	c.SetCookie("token", objectReq.RefreshToken, 360000, "", "localhost", true, true)
 	c.SetCookie("access_token", objectReq.AccessToken, 3600, "", "localhost", true, true)
 	c.JSON(200, objectReq)
 	return
@@ -57,7 +57,7 @@ func RefreshTokenEvent(c *gin.Context) {
 		c.JSON(500, err)
 		return
 	}
-	c.SetCookie("token", objectReq.RefreshToken, 3600, "/", "localhost", true, true)
+	c.SetCookie("token", objectReq.RefreshToken, 3600, "", "localhost", true, true)
 	c.SetCookie("access_token", objectReq.AccessToken, 3600, "", "localhost", true, true)
 
 	c.JSON(200, objectReq)
@@ -70,8 +70,8 @@ func LogoutUserEvent(c *gin.Context) {
 	//	return
 	//}
 	//req := amqp.Logout(jsonObject)
-	c.SetCookie("token", "", -1, "/", "localhost", true, true)
-	c.SetCookie("access_token", "", -1, "/", "localhost", true, true)
+	c.SetCookie("token", "", -1, "", "localhost", true, true)
+	c.SetCookie("access_token", "", -1, "", "localhost", true, true)
 	c.JSON(200, "Logout")
 	return
 }

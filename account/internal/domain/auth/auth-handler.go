@@ -71,25 +71,26 @@ func GetVerifyUserStatus(userId uint) RegistrationStatus {
 	return userStatus
 }
 
-func VerifyUser(userId uint, status RegistrationStatus) {
+func VerifyUser(userId uint, status RegistrationStatus) bool {
 	localUser := GetUnverifiedUserById(userId)
 	if len(localUser) == 0 {
 		logger.Log(LoggerTypes.CRITICAL, "User verification failed", nil)
-		return
+		return false
 	}
 	UpdateUnverifiedUserRegStatus(userId, status)
 
 	localUser = GetUnverifiedUserById(userId)
 	if len(localUser) == 0 {
 		logger.Log(LoggerTypes.CRITICAL, "User verification failed", nil)
-		return
+		return false
 	}
 
 	if localUser[0].RegistrationStatus == RegistrationStatusVerified {
 		newUser := user.User{UserName: localUser[0].UserName, Email: localUser[0].Email, FirstName: localUser[0].FirstName, LastName: localUser[0].LastName, PasswordHash: localUser[0].PasswordHash, RefreshTokenHash: localUser[0].RefreshTokenHash}
 		CreatedVerifiedUserAccount(newUser)
-
+		return true
 	}
+	return false
 }
 
 func CreatedVerifiedUserAccount(payload user.User) []user.User {
@@ -161,9 +162,35 @@ func SingIn(UserEmail string, password string) account.AccountSignInResponse {
 	return account.AccountSignInResponse{Message: "Login success", AccessToken: AccessToken, RefreshToken: RefreshToken}
 }
 
+func GetAllUnVerifyUsers() []account.AccountGetOneNVUserResponse {
+	usersNV := GetAllUnverifiedUsers()
+	var users []account.AccountGetOneNVUserResponse
+	for _, user := range usersNV {
+		users = append(users, account.AccountGetOneNVUserResponse{UserName: user.UserName, Email: user.Email, FirstName: user.FirstName, LastName: user.LastName, RegistrationStatus: string(user.RegistrationStatus), Ban: user.Ban, PersonalAssistant: user.PersonalAssistant, MeetingInformation: user.MeetingInformation, ReferralCode: user.ReferralCode, AdditionalContact: user.AdditionalContact})
+	}
+	return users
+}
+
+func GetAllVerifyUser() []account.AccountGetOneVUserResponse {
+	usersV := GetAllUsers()
+	var users []account.AccountGetOneVUserResponse
+	for _, user := range usersV {
+		users = append(users, account.AccountGetOneVUserResponse{UserName: user.UserName, Email: user.Email, FirstName: user.FirstName, LastName: user.LastName, Ban: user.Ban, BalanceId: user.BalanceId, ReferralId: user.ReferralId, Role: string(user.Role), ReferralCode: user.ReferralCode})
+	}
+	return users
+}
+
+func UpdateUserRole(id uint, role user.Role) {
+	UpdateUserRoleStatus(id, role)
+}
+
+func GetUserRole(id uint) user.Role {
+	return GetUserRoleStatus(id)
+}
+
 func ValidateTokens(accessToken string) currencyToAccounts.ValidateResponse {
 	t, err := ParseToken(accessToken)
-	if err != nil || t == nil || t.UserVerified == false || t.Ban == true {
+	if err != nil || t == nil || t.Ban == true {
 		return currencyToAccounts.ValidateResponse{Status: false}
 	}
 	return currencyToAccounts.ValidateResponse{Status: true, UserID: t.Id}

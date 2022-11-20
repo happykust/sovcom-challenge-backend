@@ -3,8 +3,9 @@ package accounts
 type Role string
 
 const (
-	RoleAdmin Role = "admin"
-	RoleUser  Role = "user"
+	RoleDeveloper Role = "developer"
+	RoleAdmin     Role = "admin"
+	RoleUser      Role = "user"
 )
 
 type ValidateRequest struct {
