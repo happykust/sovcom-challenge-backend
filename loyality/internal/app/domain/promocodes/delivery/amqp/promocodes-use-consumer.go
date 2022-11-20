@@ -32,8 +32,9 @@ func PromocodesUseConsumer() {
 
 			if len(d.ReplyTo) != 0 {
 				err := amqpChannel.Publish("", d.ReplyTo, false, false, amqp.Publishing{
-					ContentType: "text/plain",
-					Body:        response,
+					ContentType:   "text/plain",
+					Body:          response,
+					CorrelationId: d.CorrelationId,
 				})
 				if err != nil {
 					logger.Log(LoggerTypes.CRITICAL, "[Promocodes | Use consumer] Error publishing message", err)

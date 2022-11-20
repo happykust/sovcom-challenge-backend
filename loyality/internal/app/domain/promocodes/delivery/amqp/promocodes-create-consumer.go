@@ -31,11 +31,12 @@ func PromocodesCreateConsumer() {
 			response, err := json.Marshal(&promocodes.CreateResponse{Promocode: createdPromocode.Promocode,
 				Ticker: createdPromocode.Ticker, Amount: createdPromocode.Amount,
 				ActivationCountLimit: createdPromocode.ActivationCountLimit})
-			
+
 			if len(d.ReplyTo) != 0 {
 				err := amqpChannel.Publish("", d.ReplyTo, false, false, amqp.Publishing{
-					ContentType: "text/plain",
-					Body:        response,
+					ContentType:   "text/plain",
+					Body:          response,
+					CorrelationId: d.CorrelationId,
 				})
 				if err != nil {
 					logger.Log(LoggerTypes.CRITICAL, "[Promocodes | Create consumer] Error publishing message", err)
